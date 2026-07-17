@@ -1,0 +1,45 @@
+# Dependency Directories
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Production Build Outputs
+backend/dist/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/tsconfig.tsbuildinfo
+
+# Local Environment Variables & API Secrets (CRITICAL SECURITY)
+*.env*
+**/.env*
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env.local
+
+# Candidate Resume Uploads (CRITICAL - Privacy Protection)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Temporary Diagnostic/Scratch files
+backend/src/query_db.ts
+backend/src/test_stats.ts
+backend/src/inspect_users.ts
+backend/scratch/
+*.log
+
+# System/IDE Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
