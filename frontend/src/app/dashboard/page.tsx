@@ -141,15 +141,17 @@ export default function UserDashboard() {
         body: formData,
       });
 
-      const data = await res.json();
-      if (data.sessionId) {
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.sessionId) {
          router.push(`/interview?sessionId=${data.sessionId}`);
       } else {
-        toast.error(data.error || "Failed to process resume");
+        toast.error(data.error || `Upload failed (${res.status}: ${res.statusText || 'Server Error'})`);
       }
     } catch (error: any) {
-      console.error(error);
-      toast.error("An unexpected error occurred while uploading.");
+      console.error("Resume upload error:", error);
+      toast.error(error?.message?.includes("fetch") 
+        ? `Cannot connect to API server (${API_BASE}). Please check network connection.` 
+        : (error?.message || "An unexpected error occurred while uploading."));
     } finally {
       setUploading(false);
     }

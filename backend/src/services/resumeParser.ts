@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 const pdf = require("pdf-parse");
 const mammoth = require("mammoth");
 import { GoogleGenAI } from "@google/genai";
@@ -10,20 +11,33 @@ const genai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env
 
 export const parseResumeToText = async (filePath: string, originalName?: string): Promise<string> => {
   try {
-    const isDocx = originalName && originalName.toLowerCase().endsWith('.docx');
+    const ext = originalName ? path.extname(originalName).toLowerCase() : "";
     
-    if (isDocx) {
+    if (ext === '.docx') {
       const result = await mammoth.extractRawText({ path: filePath });
       return result.value;
+    } else if (ext === '.txt') {
+      return fs.readFileSync(filePath, 'utf-8');
     } else {
       // Default to PDF parsing
-      const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdf(dataBuffer);
-      return data.text;
+      try {
+        const dataBuffer = fs.readFileSync(filePath);
+        const data = await pdf(dataBuffer);
+        if (data && data.text && data.text.trim()) {
+          return data.text;
+        }
+      } catch (pdfErr) {
+        // Fallback: try reading as UTF-8 string if pdf-parse failed
+        const rawText = fs.readFileSync(filePath, 'utf-8');
+        if (rawText && rawText.trim()) {
+          return rawText;
+        }
+      }
+      throw new Error("Could not extract readable text from PDF. Please ensure it is a valid PDF or DOCX file.");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Parse Error:", error);
-    throw new Error("Failed to parse file. Please ensure it is a valid PDF or DOCX.");
+    throw new Error(error?.message || "Failed to parse file. Please ensure it is a valid PDF or DOCX.");
   }
 };
 
