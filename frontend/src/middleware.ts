@@ -2,6 +2,22 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const url = request.nextUrl.clone()
+
+  const isProtectedRoute = 
+    url.pathname.startsWith('/dashboard') || 
+    url.pathname.startsWith('/interview') || 
+    url.pathname.startsWith('/report');
+
+  const isAuthRoute = 
+    url.pathname.startsWith('/login') || 
+    url.pathname.startsWith('/signup');
+
+  // Fast path: skip remote session fetch for non-protected, non-auth pages
+  if (!isProtectedRoute && !isAuthRoute) {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({
     request: {
       headers: request.headers,
@@ -33,21 +49,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const url = request.nextUrl.clone()
-
-  // Protect interview, dashboard, and report routes
-  const isProtectedRoute = 
-    url.pathname.startsWith('/dashboard') || 
-    url.pathname.startsWith('/interview') || 
-    url.pathname.startsWith('/report');
-
   if (!user && isProtectedRoute) {
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Redirect away from login/signup if already authenticated
-  const isAuthRoute = url.pathname.startsWith('/login') || url.pathname.startsWith('/signup');
   if (user && isAuthRoute) {
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
