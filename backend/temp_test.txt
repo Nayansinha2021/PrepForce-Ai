@@ -1,3 +1,0 @@
-John Doe
-Software Engineer
-Skills: React, Node, TypeScript
