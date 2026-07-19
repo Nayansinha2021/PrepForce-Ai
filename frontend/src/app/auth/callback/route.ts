@@ -11,6 +11,26 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        if (!profile) {
+          await supabase.from('user_profiles').insert({
+            id: user.id,
+            email: user.email || '',
+            plan: 'free',
+            interviews_left: 2,
+            role: 'user',
+            status: 'active'
+          })
+        }
+      }
+
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {
@@ -21,6 +41,9 @@ export async function GET(request: Request) {
       } else {
         return NextResponse.redirect(`${origin}${next}`)
       }
+    } else {
+      const errorMsg = encodeURIComponent(error.message || 'auth_failed')
+      return NextResponse.redirect(`${origin}/login?error=${errorMsg}`)
     }
   }
 

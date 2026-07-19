@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { LogIn, Mail } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -13,6 +13,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error");
+      const errDesc = params.get("error_description");
+      if (err) {
+        toast.error(errDesc || (err === "auth_failed" ? "Google login failed. Please ensure Google provider is enabled in Supabase Console." : err));
+      }
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,13 +44,20 @@ export default function LoginPage() {
   };
 
   const handleOAuthLogin = async (provider: 'github' | 'google') => {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        toast.error(`OAuth login error: ${error.message}. Please check if ${provider} authentication is enabled in Supabase Console.`);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to initiate OAuth login.");
+    }
   };
 
   return (

@@ -44,15 +44,23 @@ export const sendVerificationOtp = async (req: Request, res: Response): Promise<
       return;
     }
 
-    // 2. Check if user already exists
-    const { data: existingUser } = await supabase
+    // 2. Check if user already exists in user_profiles or Auth
+    const { data: existingProfile } = await supabase
       .from("user_profiles")
       .select("id")
       .eq("email", cleanEmail)
       .maybeSingle();
 
-    if (existingUser) {
+    if (existingProfile) {
       res.status(400).json({ error: "Email is already registered. Please log in instead." });
+      return;
+    }
+
+    // Double check auth.users to prevent conflicts
+    const { data: authList } = await supabase.auth.admin.listUsers();
+    const existingAuthUser = authList?.users?.find(u => u.email?.toLowerCase() === cleanEmail);
+    if (existingAuthUser) {
+      res.status(400).json({ error: "Email is already registered in Auth. Please log in instead." });
       return;
     }
 
@@ -134,6 +142,24 @@ export const verifyOtpAndCreateAccount = async (req: Request, res: Response): Pr
       console.error("Supabase Admin Auth creation failed:", authError);
       res.status(400).json({ error: authError.message });
       return;
+    }
+
+    // 5. Auto-provision user_profiles table entry
+    if (authUser?.user) {
+      const { error: profileErr } = await supabase
+        .from("user_profiles")
+        .upsert({
+          id: authUser.user.id,
+          email: cleanEmail,
+          plan: "free",
+          interviews_left: 2,
+          role: "user",
+          status: "active"
+        }, { onConflict: "id" });
+
+      if (profileErr) {
+        console.error("Failed to provision user_profiles record:", profileErr);
+      }
     }
 
     res.status(200).json({

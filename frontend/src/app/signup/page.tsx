@@ -161,13 +161,20 @@ export default function SignupPage() {
   };
 
   const handleOAuthLogin = async (provider: 'github' | 'google') => {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        toast.error(`OAuth login error: ${error.message}. Please check if ${provider} authentication is enabled in Supabase Console.`);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to initiate OAuth login.");
+    }
   };
 
   return (
