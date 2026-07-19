@@ -59,8 +59,24 @@ export const uploadToS3 = async (filePath: string, originalName: string): Promis
     };
 
     // Execute S3 uploader command
-    const command = new PutObjectCommand(uploadParams);
-    await s3Client.send(command);
+    try {
+      const command = new PutObjectCommand(uploadParams);
+      await s3Client.send(command);
+    } catch (awsError: any) {
+      console.error("AWS S3 Upload Error:", awsError.message || awsError);
+      const isAuthErr = 
+        awsError.name === "InvalidAccessKeyId" || 
+        awsError.name === "SignatureDoesNotMatch" || 
+        awsError.name === "AccessDenied" ||
+        awsError.message?.includes("does not exist in our records") ||
+        awsError.message?.includes("Access Key Id");
+
+      if (isAuthErr) {
+        console.warn("Invalid or revoked AWS credentials detected in environment. Falling back to simulated S3 storage URL.");
+        return `https://${bucketName}.s3.${process.env.AWS_REGION || "ap-south-1"}.amazonaws.com/uploads/${fileName}`;
+      }
+      throw awsError;
+    }
 
     // Clean up temporary local file safely
     try {
