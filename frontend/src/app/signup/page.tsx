@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { getAuthCallbackURL } from "@/lib/getURL";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -163,10 +164,11 @@ export default function SignupPage() {
   const handleOAuthLogin = async (provider: 'github' | 'google') => {
     try {
       const supabase = createClient();
+      const redirectTo = getAuthCallbackURL();
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         },
       });
       if (error) {
