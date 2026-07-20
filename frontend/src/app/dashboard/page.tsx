@@ -148,7 +148,8 @@ export default function UserDashboard() {
         if (res.status === 404) {
           toast.error(`Backend API Not Found (404). Ensure NEXT_PUBLIC_API_URL points to your Express backend server, not Vercel frontend.`);
         } else {
-          toast.error(data.error || `Upload failed (${res.status}: ${res.statusText || 'Server Error'})`);
+          const detailMsg = data.details?.message || data.details?.details || data.error;
+          toast.error(detailMsg ? `Upload failed: ${detailMsg}` : `Upload failed (${res.status}: ${res.statusText || 'Server Error'})`);
         }
       }
     } catch (error: any) {

@@ -85,15 +85,38 @@ router.post("/upload-resume", requireAuth, uploadResumeLimiter, upload.single("r
 
     if (!isMock) {
       // 1. Fetch the user profile to see their plan
-      const { data: userProfile, error: profileError } = await supabase
+      let { data: userProfile, error: profileError } = await supabase
         .from('user_profiles')
         .select('plan, interviews_left')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (profileError || !userProfile) {
+      if (profileError) {
         console.error("Profile fetch error:", profileError);
-        return res.status(500).json({ error: "Failed to verify user profile" });
+        return res.status(500).json({ error: `Failed to verify user profile: ${profileError.message}` });
+      }
+
+      if (!userProfile) {
+        // Auto-provision user profile if missing
+        const userEmail = (req as any).user?.email || '';
+        const { data: createdProfile, error: provisionErr } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: userId,
+            email: userEmail,
+            plan: 'free',
+            interviews_left: 2,
+            role: 'user',
+            status: 'active'
+          })
+          .select('plan, interviews_left')
+          .single();
+
+        if (provisionErr || !createdProfile) {
+          console.error("Profile auto-creation error:", provisionErr);
+          return res.status(500).json({ error: `Failed to create user profile: ${provisionErr?.message || 'Unknown error'}` });
+        }
+        userProfile = createdProfile;
       }
 
       if (userProfile.plan === 'free') {
@@ -109,7 +132,7 @@ router.post("/upload-resume", requireAuth, uploadResumeLimiter, upload.single("r
 
         if (countError) {
           console.error("Interview count error:", countError);
-          return res.status(500).json({ error: "Failed to verify daily interview limit" });
+          return res.status(500).json({ error: `Failed to verify daily interview limit: ${countError.message}` });
         }
 
         if (todayInterviews && todayInterviews.length >= 2) {
@@ -131,18 +154,36 @@ router.post("/upload-resume", requireAuth, uploadResumeLimiter, upload.single("r
 
         if (deductError) {
           console.error("Deduct interview error:", deductError);
-          return res.status(500).json({ error: "Failed to update interview quota" });
+          return res.status(500).json({ error: `Failed to update interview quota: ${deductError.message}` });
         }
       }
     }
     
+    if (isMock) {
+      const mockSessionId = `mock-${Date.now()}`;
+      mockSessionCache.set(mockSessionId, {
+        interview: {
+          role: structuredData.role || 'General Candidate',
+          parsed_resume_context: structuredData,
+        },
+        messages: [],
+        createdAt: Date.now()
+      });
+
+      return res.json({ 
+        message: "Resume processed successfully (Mock Session)", 
+        sessionId: mockSessionId,
+        data: structuredData 
+      });
+    }
+
     // In a real scenario with strict RLS, we might use a service role to insert or the user's token.
     // Since we're in the backend with the service role key, this will bypass RLS and insert correctly.
     const { data: interviewData, error: dbError } = await supabase
       .from('interviews')
       .insert([
         {
-          user_id: isMock ? null : userId,
+          user_id: userId,
           parsed_resume_context: structuredData,
           role: structuredData.role || 'General Candidate',
           status: 'in_progress'
@@ -153,7 +194,10 @@ router.post("/upload-resume", requireAuth, uploadResumeLimiter, upload.single("r
 
     if (dbError) {
       console.error("Supabase insert error:", dbError);
-      throw new Error("Failed to save interview to database");
+      return res.status(500).json({
+        error: dbError.message || "Failed to save interview to database",
+        details: dbError
+      });
     }
 
     return res.json({ 
