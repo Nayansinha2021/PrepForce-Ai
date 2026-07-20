@@ -139,6 +139,7 @@ function CodingRoomContent() {
        } else {
          const formattedCases = currentProblem.testCases.map((tc, idx) => `Test Case ${idx + 1}: Input: ${JSON.stringify(tc.input)}, Expected: ${JSON.stringify(tc.expected)}`).join("\n");
 
+         const runSessionId = `coding-${crypto.randomUUID()}`;
          const res = await fetch(`${API_BASE}/api/interview/chat`, {
            method: "POST",
            headers: {
@@ -146,7 +147,7 @@ function CodingRoomContent() {
              Authorization: `Bearer ${session?.access_token || ""}`,
            },
            body: JSON.stringify({
-             sessionId: activeSessionId,
+             sessionId: runSessionId,
              answer: `Simulate the execution of this ${language} code for '${currentProblem.title}' against these test cases:\n${formattedCases}\n\nReturn ONLY a JSON object with key "testResults" containing an array of objects. Each object must have: "index" (number), "input" (string), "expected" (string), "actual" (string), "passed" (boolean), "logs" (array of strings). Do NOT add extra text or markdown formatting.`,
              codeContext: `Language: ${language}\n\n${code}`
            })
@@ -200,6 +201,7 @@ function CodingRoomContent() {
      try {
        const supabase = createClient();
        const { data: { session } } = await supabase.auth.getSession();
+       const reviewSessionId = `coding-${crypto.randomUUID()}`;
 
        const res = await fetch(`${API_BASE}/api/interview/chat`, {
          method: "POST",
@@ -208,7 +210,7 @@ function CodingRoomContent() {
            Authorization: `Bearer ${session?.access_token || ""}`,
          },
          body: JSON.stringify({
-           sessionId: activeSessionId,
+           sessionId: reviewSessionId,
            answer: `Please review my solution for '${currentProblem.title}'. Focus specifically on time & space complexity, edge cases, correctness, and clean code improvements.`,
            codeContext: `Language: ${language}\n\n${code}`
          })

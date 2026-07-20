@@ -157,27 +157,39 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     let aiResponseText = "Mock response: That's interesting. How would you optimize that?";
 
     if (isCodingSession) {
+      const codeStr = (codeContext || "").toLowerCase();
+      const hasReturn = codeStr.includes("return");
+      const isTooShort = codeContext ? codeContext.trim().length < 90 : true;
+      const hasSyntaxBug = !hasReturn || isTooShort || codeStr.includes("return ;") || codeStr.includes("return;");
+
       if (answer.includes("Simulate the execution")) {
         aiResponseText = JSON.stringify({
           testResults: [
-            { index: 1, input: "Test Case 1", expected: "Pass", actual: "Pass", passed: true, logs: ["Evaluated algorithm logic"] },
-            { index: 2, input: "Test Case 2", expected: "Pass", actual: "Pass", passed: true, logs: ["Evaluated boundary conditions"] },
-            { index: 3, input: "Test Case 3", expected: "Pass", actual: "Pass", passed: true, logs: ["Evaluated space constraints"] }
+            { index: 1, input: "Test Case 1", expected: "Valid Value", actual: hasSyntaxBug ? "Undefined / Incorrect" : "Valid Value", passed: !hasSyntaxBug, logs: [hasSyntaxBug ? "Logic incomplete or missing return" : "Passed test case"] },
+            { index: 2, input: "Test Case 2", expected: "Valid Value", actual: hasSyntaxBug ? "Undefined / Incorrect" : "Valid Value", passed: !hasSyntaxBug, logs: [hasSyntaxBug ? "Logic incomplete or missing return" : "Passed boundary test"] },
+            { index: 3, input: "Test Case 3", expected: "Valid Value", actual: hasSyntaxBug ? "Undefined / Incorrect" : "Valid Value", passed: !hasSyntaxBug, logs: [hasSyntaxBug ? "Logic incomplete or missing return" : "Passed constraint test"] }
           ]
         });
       } else {
-        aiResponseText = `### 💡 AI Code Review & Feedback\n\n- **Correctness:** Your solution logic is correct and handles target constraints effectively.\n- **Time Complexity:** O(N) - Linear time traversal.\n- **Space Complexity:** O(1) - Auxiliary space map.\n- **Key Observation:** The sliding window technique maintains optimal time performance without redundant scans.`;
+        if (hasSyntaxBug) {
+          aiResponseText = `### 💡 AI Code Review & Feedback\n\n- **Status:** ⚠️ Bug / Incomplete Logic Detected\n- **Issue:** Your code appears incomplete, missing a valid return statement, or contains syntax errors.\n- **Action Required:** Complete the function implementation and return the computed result to pass test cases.`;
+        } else {
+          aiResponseText = `### 💡 AI Code Review & Feedback\n\n- **Correctness:** Your solution logic appears complete and handles constraints.\n- **Time Complexity:** O(N) - Linear time traversal.\n- **Space Complexity:** O(N) or O(1) auxiliary memory.\n- **Recommendation:** Double check edge cases such as empty input arrays/strings.`;
+        }
       }
     }
 
     // 4. Generate AI Response
     if (genai) {
-       let chatHistory = history.filter(m => m.role !== 'system');
+       let chatHistory = isCodingSession 
+         ? [{ role: 'user', parts: [{ text: finalUserMessage }] }]
+         : history.filter(m => m.role !== 'system');
+         
        const systemMessages = history.filter(m => m.role === 'system');
        const systemInstruction = systemMessages.map(m => m.parts[0].text).join("\n");
 
        // Gemini API requires the first message in history to be from the 'user'
-       if (chatHistory.length > 0 && chatHistory[0].role === 'model') {
+       if (!isCodingSession && chatHistory.length > 0 && chatHistory[0].role === 'model') {
          chatHistory = [
            { role: 'user', parts: [{ text: "Hello, I am ready for the interview." }] },
            ...chatHistory
