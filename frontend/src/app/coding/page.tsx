@@ -38,6 +38,11 @@ function CodingRoomContent() {
     fetchDefaultLanguage();
   }, []);
 
+  const [activeSessionId, setActiveSessionId] = useState<string>(() => {
+    const raw = searchParams.get("sessionId");
+    return !raw || raw.startsWith("coding-") || raw.startsWith("mock-") ? (raw || `coding-${crypto.randomUUID()}`) : `coding-${raw}`;
+  });
+
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = e.target.value;
     setLanguage(newLang);
@@ -49,6 +54,7 @@ function CodingRoomContent() {
     const prob = problems.find(p => p.id === probId) || problems[1];
     setCurrentProblem(prob);
     setCode(prob.snippets[language] || "");
+    setActiveSessionId(`coding-${crypto.randomUUID()}`);
     setAiFeedback(null);
     setExecutionOutput(null);
     setTestResults(null);
@@ -131,20 +137,18 @@ function CodingRoomContent() {
            console.log = originalLog;
          }
        } else {
-          const effectiveSessionId = !sessionId || sessionId.startsWith("coding-") || sessionId.startsWith("mock-") ? (sessionId || "coding-123") : `coding-${sessionId}`;
-
-          const res = await fetch(`${API_BASE}/api/interview/chat`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session?.access_token || ""}`,
-            },
-            body: JSON.stringify({
-              sessionId: effectiveSessionId,
-              answer: `Simulate the execution of this code against 3 test cases for '${currentProblem.title}'. Output ONLY the execution results: whether each test case Passed or Failed, the Expected Output, the Actual Output, and any Compilation/Runtime Errors. Do not provide any hints or feedback on how to improve the code.`,
-              codeContext: `Language: ${language}\n\n${code}`
-            })
-          });
+         const res = await fetch(`${API_BASE}/api/interview/chat`, {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+             Authorization: `Bearer ${session?.access_token || ""}`,
+           },
+           body: JSON.stringify({
+             sessionId: activeSessionId,
+             answer: `Simulate the execution of this code against 3 test cases for '${currentProblem.title}'. Output ONLY the execution results: whether each test case Passed or Failed, the Expected Output, the Actual Output, and any Compilation/Runtime Errors. Do not provide any hints or feedback on how to improve the code.`,
+             codeContext: `Language: ${language}\n\n${code}`
+           })
+         });
 
          const data = await res.json();
          setIsRunning(false);
@@ -180,8 +184,6 @@ function CodingRoomContent() {
        const supabase = createClient();
        const { data: { session } } = await supabase.auth.getSession();
 
-       const effectiveSessionId = !sessionId || sessionId.startsWith("coding-") || sessionId.startsWith("mock-") ? (sessionId || "coding-123") : `coding-${sessionId}`;
-
        const res = await fetch(`${API_BASE}/api/interview/chat`, {
          method: "POST",
          headers: {
@@ -189,8 +191,8 @@ function CodingRoomContent() {
            Authorization: `Bearer ${session?.access_token || ""}`,
          },
          body: JSON.stringify({
-           sessionId: effectiveSessionId,
-           answer: `Please review my code for '${currentProblem.title}'.`,
+           sessionId: activeSessionId,
+           answer: `Please review my solution for '${currentProblem.title}'. Focus specifically on time & space complexity, edge cases, correctness, and clean code improvements.`,
            codeContext: `Language: ${language}\n\n${code}`
          })
        });

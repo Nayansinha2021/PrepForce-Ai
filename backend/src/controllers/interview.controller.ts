@@ -94,32 +94,43 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     }
 
     let history: any[] = [];
+    const isCodingSession = typeof sessionId === 'string' && sessionId.startsWith("coding-");
     
     if (!existingMessages || existingMessages.length === 0) {
-      // Initialize memory
-      let sysPrompt = `You are PrepForce AI, an expert technical interviewer. The candidate is applying for the role of ${interview.role}. Context from their resume: ${JSON.stringify(interview.parsed_resume_context)}.`;
-      
-      if (interview.parsed_resume_context?.targetJobDescription) {
-        sysPrompt += `\n\nCRITICAL INSTRUCTION: The candidate has provided the exact Job Description for this role: "${interview.parsed_resume_context.targetJobDescription}". You MUST evaluate their answers against this specific job description. Ask questions that test if they meet the specific requirements listed in this JD based on their resume.`;
+      let sysPrompt = "";
+      let initialGreeting = "";
+
+      if (isCodingSession) {
+        sysPrompt = `You are PrepForce AI, an expert Senior Staff Software Engineer and coding reviewer. Evaluate the candidate's code submission for technical correctness, time & space complexity (Big-O notation), edge cases, and optimization suggestions. Be structured, concise, and direct.`;
+      } else {
+        sysPrompt = `You are PrepForce AI, an expert technical interviewer. The candidate is applying for the role of ${interview.role}. Context from their resume: ${JSON.stringify(interview.parsed_resume_context)}.`;
+        
+        if (interview.parsed_resume_context?.targetJobDescription) {
+          sysPrompt += `\n\nCRITICAL INSTRUCTION: The candidate has provided the exact Job Description for this role: "${interview.parsed_resume_context.targetJobDescription}". You MUST evaluate their answers against this specific job description. Ask questions that test if they meet the specific requirements listed in this JD based on their resume.`;
+        }
+        
+        sysPrompt += `\n\nKeep your responses short, conversational, and ask one clear follow-up question based on their previous answer. Do not break character.`;
+        initialGreeting = "Hello! I'm PrepForce AI. I'll be conducting your technical interview today. Can you start by telling me a bit about your background?";
       }
-      
-      sysPrompt += `\n\nKeep your responses short, conversational, and ask one clear follow-up question based on their previous answer. Do not break character.`;
-      
-      const initialGreeting = "Hello! I'm PrepForce AI. I'll be conducting your technical interview today. Can you start by telling me a bit about your background?";
 
       if (isMockSession) {
         const cached = mockSessionCache.get(sessionId)!;
         cached.messages.push({ role: 'system', content: sysPrompt });
-        cached.messages.push({ role: 'model', content: initialGreeting });
+        if (initialGreeting) {
+          cached.messages.push({ role: 'model', content: initialGreeting });
+        }
       } else {
-        await supabase.from('messages').insert([
-          { interview_id: sessionId, role: 'system', content: sysPrompt },
-          { interview_id: sessionId, role: 'model', content: initialGreeting }
-        ]);
+        const toInsert: any[] = [{ interview_id: sessionId, role: 'system', content: sysPrompt }];
+        if (initialGreeting) {
+          toInsert.push({ interview_id: sessionId, role: 'model', content: initialGreeting });
+        }
+        await supabase.from('messages').insert(toInsert);
       }
       
       history.push({ role: "system", parts: [{ text: sysPrompt }] });
-      history.push({ role: "model", parts: [{ text: initialGreeting }] });
+      if (initialGreeting) {
+        history.push({ role: "model", parts: [{ text: initialGreeting }] });
+      }
     } else {
       history = existingMessages.map(m => ({
         role: m.role,
