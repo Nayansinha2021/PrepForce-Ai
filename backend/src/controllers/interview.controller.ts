@@ -156,6 +156,20 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
 
     let aiResponseText = "Mock response: That's interesting. How would you optimize that?";
 
+    if (isCodingSession) {
+      if (answer.includes("Simulate the execution")) {
+        aiResponseText = JSON.stringify({
+          testResults: [
+            { index: 1, input: "Test Case 1", expected: "Pass", actual: "Pass", passed: true, logs: ["Evaluated algorithm logic"] },
+            { index: 2, input: "Test Case 2", expected: "Pass", actual: "Pass", passed: true, logs: ["Evaluated boundary conditions"] },
+            { index: 3, input: "Test Case 3", expected: "Pass", actual: "Pass", passed: true, logs: ["Evaluated space constraints"] }
+          ]
+        });
+      } else {
+        aiResponseText = `### 💡 AI Code Review & Feedback\n\n- **Correctness:** Your solution logic is correct and handles target constraints effectively.\n- **Time Complexity:** O(N) - Linear time traversal.\n- **Space Complexity:** O(1) - Auxiliary space map.\n- **Key Observation:** The sliding window technique maintains optimal time performance without redundant scans.`;
+      }
+    }
+
     // 4. Generate AI Response
     if (genai) {
        let chatHistory = history.filter(m => m.role !== 'system');

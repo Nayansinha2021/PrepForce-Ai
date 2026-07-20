@@ -137,6 +137,8 @@ function CodingRoomContent() {
            console.log = originalLog;
          }
        } else {
+         const formattedCases = currentProblem.testCases.map((tc, idx) => `Test Case ${idx + 1}: Input: ${JSON.stringify(tc.input)}, Expected: ${JSON.stringify(tc.expected)}`).join("\n");
+
          const res = await fetch(`${API_BASE}/api/interview/chat`, {
            method: "POST",
            headers: {
@@ -145,7 +147,7 @@ function CodingRoomContent() {
            },
            body: JSON.stringify({
              sessionId: activeSessionId,
-             answer: `Simulate the execution of this code against 3 test cases for '${currentProblem.title}'. Output ONLY the execution results: whether each test case Passed or Failed, the Expected Output, the Actual Output, and any Compilation/Runtime Errors. Do not provide any hints or feedback on how to improve the code.`,
+             answer: `Simulate the execution of this ${language} code for '${currentProblem.title}' against these test cases:\n${formattedCases}\n\nReturn ONLY a JSON object with key "testResults" containing an array of objects. Each object must have: "index" (number), "input" (string), "expected" (string), "actual" (string), "passed" (boolean), "logs" (array of strings). Do NOT add extra text or markdown formatting.`,
              codeContext: `Language: ${language}\n\n${code}`
            })
          });
@@ -154,8 +156,23 @@ function CodingRoomContent() {
          setIsRunning(false);
          
          if (data.reply) {
-           setExecutionOutput(data.reply);
-           const passed = !data.reply.toLowerCase().includes('failed') && !data.reply.toLowerCase().includes('error');
+           let parsed: any[] | null = null;
+           try {
+             const cleaned = data.reply.replace(/```json/g, "").replace(/```/g, "").trim();
+             const match = cleaned.match(/\{[\s\S]*\}/) || cleaned.match(/\[[\s\S]*\]/);
+             if (match) {
+               const jsonObj = JSON.parse(match[0]);
+               parsed = Array.isArray(jsonObj) ? jsonObj : (jsonObj.testResults || null);
+             }
+           } catch (e) {}
+
+           if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+             setTestResults(parsed);
+           } else {
+             setExecutionOutput(data.reply);
+           }
+
+           const passed = parsed ? parsed.every((r: any) => r.passed) : (!data.reply.toLowerCase().includes('failed') && !data.reply.toLowerCase().includes('error'));
            if (session?.user) {
              await supabase.from('coding_attempts').insert([{
                user_id: session.user.id,
