@@ -91,35 +91,7 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
       }
     }
 
-    if (!existingMessages || existingMessages.length === 0) {
-       // Generate a dummy report for an empty interview
-       const emptyReport = {
-         overallScore: 0,
-         technicalDepth: 0,
-         communication: 0,
-         confidence: 0,
-         strengths: ["None (Interview was ended before answering any questions)"],
-         improvements: ["Participate in the interview to get a full analysis"],
-         behavioralAnalysis: "Not enough data to analyze behavior."
-       };
-       if (isMockSession) {
-         interviewData.scorecard = emptyReport;
-       } else {
-         await supabase
-           .from('interviews')
-           .update({ scorecard: emptyReport, status: 'completed' })
-           .eq('id', sessionId);
-       }
-       return res.json({ 
-         report: { 
-           ...emptyReport, 
-           behavioralData: interviewData.behavioral_data 
-         } 
-       });
-    }
-
-    // Calculate quantitative filler word frequencies and speaking speed (WPM)
-    const userMessages = existingMessages.filter(m => m.role === 'user');
+    const userMessages = existingMessages ? existingMessages.filter(m => m.role === 'user') : [];
     const userSpeechText = userMessages.map(m => m.content).join(" ");
     const fillerWords = ["um", "ah", "basically", "like", "so", "actually"];
     const fillerCounts: Record<string, number> = {};
@@ -133,6 +105,39 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
     });
 
     const totalWords = userSpeechText.split(/\s+/).filter(Boolean).length;
+
+    // Check for early interview termination (fewer than 15 total words spoken by user)
+    if (!existingMessages || existingMessages.length === 0 || userMessages.length === 0 || totalWords < 15) {
+       const incompleteReport = {
+         overallScore: 0,
+         technicalDepth: 0,
+         communication: 0,
+         confidence: 0,
+         strengths: ["Session initiated"],
+         improvements: ["Participate in the interview by answering questions to receive a full AI evaluation"],
+         behavioralAnalysis: "Interview ended before sufficient response data was gathered to analyze non-verbal cues or performance.",
+         speechAnalytics: {
+           wpm: 0,
+           fillers: {},
+           totalFillers: 0
+         }
+       };
+       if (isMockSession) {
+         interviewData.scorecard = incompleteReport;
+       } else {
+         await supabase
+           .from('interviews')
+           .update({ scorecard: incompleteReport, status: 'completed' })
+           .eq('id', sessionId);
+       }
+       return res.json({ 
+         report: { 
+           ...incompleteReport, 
+           behavioralData: interviewData.behavioral_data 
+         } 
+       });
+    }
+
     const estimatedMinutes = Math.max(0.5, userMessages.length * 0.4); 
     const calculatedWpm = totalWords > 0 ? Math.round(totalWords / estimatedMinutes) : 0;
 
@@ -148,13 +153,19 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
       : "";
 
     if (!genai) {
+      const calcTech = Math.min(95, Math.max(40, Math.round(totalWords * 0.5 + 30)));
+      const calcComm = Math.min(95, Math.max(45, Math.round(calculatedWpm > 90 && calculatedWpm < 160 ? 85 : 70)));
+      const calcConf = Math.min(95, Math.max(40, Math.round(85 - (totalFillers * 4))));
+      const calcOverall = Math.round((calcTech + calcComm + calcConf) / 3);
+
       const mockReport = {
-         overallScore: 85,
-         technicalDepth: 90,
-         communication: 82,
-         confidence: 88,
-         strengths: ["Strong React concepts", "Clear speaker"],
-         improvements: ["System design micro-frontends"],
+         overallScore: calcOverall,
+         technicalDepth: calcTech,
+         communication: calcComm,
+         confidence: calcConf,
+         strengths: ["Answered core interview questions", "Active engagement during session"],
+         improvements: ["Provide more in-depth architectural examples in answers"],
+         behavioralAnalysis: "Demonstrated steady gaze and focused posture during response delivery.",
          speechAnalytics
       };
       if (isMockSession) {
