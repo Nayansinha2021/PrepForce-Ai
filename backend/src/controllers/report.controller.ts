@@ -48,37 +48,47 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
         .from('interviews')
         .select('scorecard, status, behavioral_data')
         .eq('id', sessionId)
-        .single();
+        .maybeSingle();
 
-      if (interviewError) {
-        console.error(`[DEBUG] Database error for sessionId ${sessionId}:`, interviewError);
-        return res.status(500).json({ error: `Database error: ${interviewError.message}` });
-      }
       if (!dbInterview) {
-        console.error(`[DEBUG] Interview not found in DB for sessionId: ${sessionId}`);
-        return res.status(404).json({ error: `Interview ID ${sessionId} does not exist in the database.` });
-      }
-      interviewData = dbInterview;
+        if (!mockSessionCache.has(sessionId)) {
+          mockSessionCache.set(sessionId, {
+            interview: {
+              role: "Software Engineer",
+              parsed_resume_context: {
+                skills: ["Algorithms", "Data Structures", "Problem Solving"]
+              }
+            },
+            messages: [],
+            createdAt: Date.now()
+          });
+        }
+        const cached = mockSessionCache.get(sessionId)!;
+        interviewData = cached.interview;
+        existingMessages = cached.messages;
+      } else {
+        interviewData = dbInterview;
 
-      // Return cached report if it already exists, attaching raw behavioral metrics
-      if (interviewData.scorecard) {
-        const cachedReport = {
-          ...interviewData.scorecard,
-          behavioralData: interviewData.behavioral_data
-        };
-        return res.json({ report: cachedReport });
-      }
+        // Return cached report if it already exists, attaching raw behavioral metrics
+        if (interviewData.scorecard) {
+          const cachedReport = {
+            ...interviewData.scorecard,
+            behavioralData: interviewData.behavioral_data
+          };
+          return res.json({ report: cachedReport });
+        }
 
-      const { data: dbMessages, error: msgError } = await supabase
-        .from('messages')
-        .select('role, content')
-        .eq('interview_id', sessionId)
-        .order('created_at', { ascending: true });
+        const { data: dbMessages, error: msgError } = await supabase
+          .from('messages')
+          .select('role, content')
+          .eq('interview_id', sessionId)
+          .order('created_at', { ascending: true });
 
-      if (msgError) {
-        return res.status(500).json({ error: "Failed to fetch messages" });
+        if (msgError) {
+          return res.status(500).json({ error: "Failed to fetch messages" });
+        }
+        existingMessages = dbMessages || [];
       }
-      existingMessages = dbMessages || [];
     }
 
     if (!existingMessages || existingMessages.length === 0) {

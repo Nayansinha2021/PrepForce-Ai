@@ -59,21 +59,38 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
         .from('interviews')
         .select('parsed_resume_context, role')
         .eq('id', sessionId)
-        .single();
+        .maybeSingle();
 
-      if (intError || !dbInterview) {
-        return res.status(404).json({ error: "Interview session not found" });
+      if (!dbInterview) {
+        if (!mockSessionCache.has(sessionId)) {
+          mockSessionCache.set(sessionId, {
+            interview: {
+              role: "Software Engineer",
+              parsed_resume_context: {
+                skills: ["Algorithms", "Data Structures", "Problem Solving"],
+                experience: ["Technical Coding Assessment"],
+                projects: ["Coding Challenge Solution"]
+              }
+            },
+            messages: [],
+            createdAt: Date.now()
+          });
+        }
+        const cached = mockSessionCache.get(sessionId)!;
+        interview = cached.interview;
+        existingMessages = cached.messages;
+      } else {
+        interview = dbInterview;
+
+        // 2. Fetch existing messages
+        const { data: dbMessages, error: msgError } = await supabase
+          .from('messages')
+          .select('role, content')
+          .eq('interview_id', sessionId)
+          .order('created_at', { ascending: true });
+
+        existingMessages = dbMessages || [];
       }
-      interview = dbInterview;
-
-      // 2. Fetch existing messages
-      const { data: dbMessages, error: msgError } = await supabase
-        .from('messages')
-        .select('role, content')
-        .eq('interview_id', sessionId)
-        .order('created_at', { ascending: true });
-
-      existingMessages = dbMessages || [];
     }
 
     let history: any[] = [];

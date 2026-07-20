@@ -131,18 +131,20 @@ function CodingRoomContent() {
            console.log = originalLog;
          }
        } else {
-         const res = await fetch(`${API_BASE}/api/interview/chat`, {
-           method: "POST",
-           headers: {
-             "Content-Type": "application/json",
-             Authorization: `Bearer ${session?.access_token || ""}`,
-           },
-           body: JSON.stringify({
-             sessionId: sessionId || "mock-123",
-             answer: `Simulate the execution of this code against 3 test cases for '${currentProblem.title}'. Output ONLY the execution results: whether each test case Passed or Failed, the Expected Output, the Actual Output, and any Compilation/Runtime Errors. Do not provide any hints or feedback on how to improve the code.`,
-             codeContext: `Language: ${language}\n\n${code}`
-           })
-         });
+          const effectiveSessionId = !sessionId || sessionId.startsWith("coding-") || sessionId.startsWith("mock-") ? (sessionId || "coding-123") : `coding-${sessionId}`;
+
+          const res = await fetch(`${API_BASE}/api/interview/chat`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token || ""}`,
+            },
+            body: JSON.stringify({
+              sessionId: effectiveSessionId,
+              answer: `Simulate the execution of this code against 3 test cases for '${currentProblem.title}'. Output ONLY the execution results: whether each test case Passed or Failed, the Expected Output, the Actual Output, and any Compilation/Runtime Errors. Do not provide any hints or feedback on how to improve the code.`,
+              codeContext: `Language: ${language}\n\n${code}`
+            })
+          });
 
          const data = await res.json();
          setIsRunning(false);
@@ -178,6 +180,8 @@ function CodingRoomContent() {
        const supabase = createClient();
        const { data: { session } } = await supabase.auth.getSession();
 
+       const effectiveSessionId = !sessionId || sessionId.startsWith("coding-") || sessionId.startsWith("mock-") ? (sessionId || "coding-123") : `coding-${sessionId}`;
+
        const res = await fetch(`${API_BASE}/api/interview/chat`, {
          method: "POST",
          headers: {
@@ -185,7 +189,7 @@ function CodingRoomContent() {
            Authorization: `Bearer ${session?.access_token || ""}`,
          },
          body: JSON.stringify({
-           sessionId: sessionId || "mock-123",
+           sessionId: effectiveSessionId,
            answer: `Please review my code for '${currentProblem.title}'.`,
            codeContext: `Language: ${language}\n\n${code}`
          })

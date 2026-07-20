@@ -107,7 +107,7 @@ export default function UserDashboard() {
   const handleStartInterview = async (type: 'standard' | 'coding' = 'standard') => {
     // Coding challenges don't need a resume or backend interview session anymore
     if (type === 'coding') {
-      const randomSessionId = crypto.randomUUID();
+      const randomSessionId = `coding-${crypto.randomUUID()}`;
       router.push(`/coding?sessionId=${randomSessionId}`);
       return;
     }
@@ -556,7 +556,7 @@ export default function UserDashboard() {
                                  {statusText}
                                </span>
                                <button
-                                 onClick={() => router.push(`/coding?sessionId=${crypto.randomUUID()}`)}
+                                 onClick={() => router.push(`/coding?sessionId=coding-${crypto.randomUUID()}`)}
                                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors shadow-md shadow-indigo-600/10 cursor-pointer"
                                >
                                  {isSolved ? "Practice Again" : "Solve Challenge"}
