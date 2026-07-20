@@ -25,10 +25,10 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin) || process.env.NODE_ENV !== "production") {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(null, true);
     }
   },
   credentials: true
