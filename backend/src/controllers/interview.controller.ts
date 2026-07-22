@@ -6,7 +6,19 @@ dotenv.config();
 
 import { supabase } from "../config/supabase";
 
-const genai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
+const getGenAI = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  return apiKey ? new GoogleGenAI({ apiKey }) : null;
+};
+
+const DYNAMIC_FALLBACK_QUESTIONS = [
+  "That's great! Could you tell me a bit about your background and technical experience?",
+  "That sounds interesting! Could you share a specific technical challenge you faced while building that, and how you resolved it?",
+  "Great point! In terms of architecture and implementation, what key trade-offs did you have to consider?",
+  "That makes sense! How did you handle testing, debugging, or optimizing performance in that scenario?",
+  "Thanks for highlighting that! How do you usually approach collaboration and code reviews with your team when working on such tasks?",
+  "Understood! If you were to redesign or rebuild that feature today, what would you improve or do differently?"
+];
 
 export const mockSessionCache = new Map<string, { interview: any, messages: any[], createdAt: number }>();
 
@@ -180,6 +192,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     }
 
     // 4. Generate AI Response
+    const genai = getGenAI();
     if (!aiResponseText && genai) {
        let chatHistory = isCodingSession 
          ? [{ role: 'user', parts: [{ text: finalUserMessage }] }]
@@ -209,8 +222,8 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
              contents: chatHistory as any,
              config: requestConfig
            });
-           if (response && response.text) {
-             aiResponseText = response.text;
+           if (response && response.text && response.text.trim()) {
+             aiResponseText = response.text.trim();
              break;
            }
          } catch (e: any) {
@@ -219,9 +232,18 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
        }
     }
 
-    if (!aiResponseText) {
-       console.warn("Falling back to contextual conversational response.");
-       aiResponseText = `Thanks for sharing that! Could you walk me through one of your recent technical projects or key responsibilities?`;
+    // 4b. Anti-Repetition Guard: Check against previously sent model messages in this session
+    const previousModelMessages = existingMessages ? existingMessages.filter(m => m.role === 'model').map(m => m.content.trim()) : [];
+    const isRepeated = previousModelMessages.some(prevMsg => prevMsg === aiResponseText || (aiResponseText && prevMsg.includes(aiResponseText)));
+
+    if (!aiResponseText || isRepeated) {
+       console.warn("AI response was empty or duplicate of previous message. Selecting dynamic non-repeating fallback.");
+       const availableFallbacks = DYNAMIC_FALLBACK_QUESTIONS.filter(q => !previousModelMessages.includes(q.trim()));
+       if (availableFallbacks.length > 0) {
+         aiResponseText = availableFallbacks[Math.floor(Math.random() * availableFallbacks.length)];
+       } else {
+         aiResponseText = DYNAMIC_FALLBACK_QUESTIONS[Math.floor(Math.random() * DYNAMIC_FALLBACK_QUESTIONS.length)];
+       }
     }
 
     // 5. Save AI response
