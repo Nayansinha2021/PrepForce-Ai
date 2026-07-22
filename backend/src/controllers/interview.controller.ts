@@ -154,7 +154,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     }
     history.push({ role: "user", parts: [{ text: finalUserMessage }] });
 
-    let aiResponseText = "That's great! Could you tell me a bit more about your background and technical experience?";
+    let aiResponseText = "";
 
     if (isCodingSession) {
       const codeStr = (codeContext || "").toLowerCase();
@@ -180,7 +180,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     }
 
     // 4. Generate AI Response
-    if (genai) {
+    if (!aiResponseText && genai) {
        let chatHistory = isCodingSession 
          ? [{ role: 'user', parts: [{ text: finalUserMessage }] }]
          : history.filter(m => m.role !== 'system');
@@ -201,33 +201,27 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
          requestConfig.systemInstruction = systemInstruction;
        }
 
-       let retries = 2;
-       let response;
-       while (retries >= 0) {
+       const modelsToTry = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"];
+       for (const modelName of modelsToTry) {
          try {
-           response = await genai.models.generateContent({
-             model: "gemini-2.0-flash",
+           const response = await genai.models.generateContent({
+             model: modelName,
              contents: chatHistory as any,
              config: requestConfig
            });
-           break; // Success
-         } catch (e: any) {
-           if (retries > 0 && (e.status === 503 || e.status === 429 || e.message?.includes('demand'))) {
-             retries--;
-             await new Promise(resolve => setTimeout(resolve, 2000));
-             continue;
-           }
-           if (retries === 0 && (e.status === 503 || e.status === 429 || e.message?.includes('demand'))) {
-             console.warn("Gemini AI chat unavailable after retries. Falling back to generic response.");
-             response = { text: "I'm currently experiencing a brief network pause on my end. Let me know if you'd like to elaborate further on your experience." };
+           if (response && response.text) {
+             aiResponseText = response.text;
              break;
            }
-           throw e;
+         } catch (e: any) {
+           console.warn(`Gemini model ${modelName} call failed (${e.status || e.message}). Trying fallback model...`);
          }
        }
-       aiResponseText = response?.text || "Could you please elaborate a bit more on that?";
-    } else {
-       console.warn("No GEMINI_API_KEY found, returning conversational fallback response.");
+    }
+
+    if (!aiResponseText) {
+       console.warn("Falling back to contextual conversational response.");
+       aiResponseText = `Thanks for sharing that! Could you walk me through one of your recent technical projects or key responsibilities?`;
     }
 
     // 5. Save AI response

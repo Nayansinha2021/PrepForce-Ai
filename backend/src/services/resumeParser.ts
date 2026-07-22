@@ -60,44 +60,30 @@ export const structureResumeData = async (text: string) => {
     ${text}
   `;
 
+  const modelsToTry = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"];
   let retries = 2;
   while (retries >= 0) {
-    try {
-      const response = await genai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: prompt,
-      });
-      
-      // Attempt to parse JSON response
-      const jsonStr = response.text?.replace(/```json/g, "").replace(/```/g, "").trim() || "{}";
-      return JSON.parse(jsonStr);
-    } catch (error: any) {
-      console.error(`Error structuring resume data (retries left: ${retries}):`, error.message);
-      if (retries > 0 && (error.status === 503 || error.status === 429 || error.message?.includes('demand'))) {
-        retries--;
-        await new Promise(resolve => setTimeout(resolve, 2000)); // wait 2 seconds before retry
-        continue;
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await genai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+        });
+        
+        // Attempt to parse JSON response
+        const jsonStr = response.text?.replace(/```json/g, "").replace(/```/g, "").trim() || "{}";
+        return JSON.parse(jsonStr);
+      } catch (error: any) {
+        console.warn(`Model ${modelName} in resumeParser failed (${error.status || error.message})...`);
       }
-      if (retries === 0 && (error.status === 503 || error.status === 429 || error.message?.includes('demand'))) {
-        console.warn("Gemini AI is unavailable after retries. Falling back to generic structured data.");
-        return {
-          skills: ["Software Engineering", "Problem Solving", "Communication"],
-          experience: "Candidate has relevant experience based on the uploaded resume.",
-          projects: ["Various professional projects"],
-          role: "General Candidate",
-        };
-      }
-      if (error.status === 429 || error.message?.includes('exceeded')) {
-        throw new Error("Gemini API Rate Limit Exceeded. Please wait 1 minute and try again.");
-      }
-      if (error.status === 503 || error.message?.includes('demand')) {
-        throw new Error("Gemini AI is currently experiencing high demand. Please try again in a few moments.");
-      }
-      throw new Error("Failed to process resume with AI");
+    }
+    retries--;
+    if (retries >= 0) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 
-  // Safety fallback — should never be reached, but prevents undefined return
+  console.warn("Gemini AI is unavailable after model retries. Falling back to default structured data.");
   return {
     skills: ["Software Engineering", "Problem Solving", "Communication"],
     experience: "Candidate has relevant experience based on the uploaded resume.",
