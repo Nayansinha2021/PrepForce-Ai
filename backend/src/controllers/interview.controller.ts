@@ -37,11 +37,14 @@ CANDIDATE RESUME SUMMARY:
 
   sysPrompt += `\n\nCRITICAL INTERVIEWER DIRECTIVES:
 1. GREET CANDIDATE BY NAME: If the candidate introduces themselves or mentions their name (e.g. "My name is Naya", "I am Naya"), ALWAYS greet them warmly by their name first (e.g. "Nice to meet you, Naya!").
-2. STRICT RESUME RELEVANCE ONLY: You MUST ask questions ONLY related to the specific technical skills (${skillsList}), projects (${projectsList}), and experience listed in their resume above. Do NOT ask off-topic, non-technical, or generic questions.
-3. ADAPT TO CANDIDATE'S RESPONSES: Read what the candidate says during the interview. Acknowledge their statement directly in 1 sentence, and then ask a medium-level technical question that connects their answer directly to their resume skills.
-4. STRICT MEDIUM DIFFICULTY LEVEL: All technical questions MUST be at a strict MEDIUM DIFFICULTY level (testing intermediate software concepts, system architecture, state management, asynchronous handling, DB query optimization, API performance trade-offs, and edge cases related to their resume tools).
+2. ANSWER EVALUATION & ERROR DETECTION (CRITICAL):
+   - IF THE CANDIDATE'S ANSWER CONTAINS A TECHNICAL MISTAKE OR MISCONCEPTION: Politely point out the specific error or correct concept in 1 friendly line (e.g. "Actually, React uses Virtual DOM rather than Shadow DOM..." or "That's not quite accurate regarding HTTP GET requests..."), then ask a follow-up question to test their understanding.
+   - IF THE CANDIDATE'S ANSWER IS OFF-TOPIC, VAGUE, OR EVASIVE (e.g. "I don't know", "pizza", short gibberish): Point out that their answer was off-topic or incomplete, and gently guide them back to a specific technical question on their resume skills.
+   - IF THE CANDIDATE'S ANSWER IS ACCURATE: Validate their answer in 1 concise sentence before asking the next question.
+3. STRICT RESUME RELEVANCE ONLY: You MUST ask questions ONLY related to the specific technical skills (${skillsList}), projects (${projectsList}), and experience listed in their resume above. Do NOT ask off-topic or generic filler questions.
+4. STRICT MEDIUM DIFFICULTY LEVEL: All technical questions MUST be at a strict MEDIUM DIFFICULTY level (testing intermediate concepts, state management, asynchronous handling, system architecture, DB query optimization, API performance trade-offs, and edge cases related to their resume skills).
 5. CONCISE FORMAT: Keep each response short (2-3 sentences max). Never print long lectures, bullet points, or multiple questions at once.
-6. ANTI-REPETITION: NEVER repeat a question that has already been asked in this session. Do not break character.`;
+6. ANTI-REPETITION: NEVER repeat a question that has already been asked in this session. Do not break character under any circumstances.`;
 
   const initialGreeting = `Hello! Welcome to PrepForce AI. I'll be conducting your technical interview for the ${role} position today. To start off, please introduce yourself, tell me your name, and share a brief overview of your technical background.`;
 
@@ -74,15 +77,20 @@ const generateResumeAwareFallback = (interview: any, previousModelMessages: stri
 
   const nameGreeting = candidateName ? `Nice to meet you, ${candidateName}! ` : "";
 
-  // Dynamic acknowledgment of what candidate said
+  // Check if candidate answer is evasive or very short
+  const lowerMsg = candidateMessage.toLowerCase().trim();
+  const isShortOrEvasive = lowerMsg.length < 15 || lowerMsg.includes("don't know") || lowerMsg.includes("idk") || lowerMsg.includes("not sure") || lowerMsg.includes("no idea");
+
   let userAck = "";
-  if (candidateMessage && candidateMessage.trim().length > 5) {
-    userAck = `Thanks for explaining that. `;
+  if (isShortOrEvasive && candidateMessage.length > 0) {
+    userAck = "I noticed your response was brief or uncertain. Let's focus on a specific core concept: ";
+  } else if (candidateMessage && candidateMessage.trim().length > 5) {
+    userAck = "Thanks for explaining your approach. ";
   }
 
   const pool = [
     `${nameGreeting}${userAck}Looking at your experience with ${topSkill} in ${mainProject}, how do you handle state synchronization, async error handling, and performance bottlenecks under load?`,
-    `${nameGreeting}${userAck}Building on what you mentioned and your background with ${secondSkill}, what intermediate architectural pattern (e.g., custom hooks, caching, or middleware) did you implement to optimize application responsiveness?`,
+    `${nameGreeting}${userAck}Building on your background with ${secondSkill}, what intermediate architectural pattern (e.g., custom hooks, caching, or middleware) did you implement to optimize application responsiveness?`,
     `${nameGreeting}${userAck}Considering your experience designing backend API endpoints using ${thirdSkill || topSkill}, how do you structure database queries, transaction rollbacks, and rate-limiting to prevent race conditions?`,
     `${nameGreeting}${userAck}Walk me through a medium-complexity technical decision you made while building ${mainProject}. What were the key trade-offs between memory overhead and execution speed?`,
     `${nameGreeting}${userAck}With your background in ${skills.slice(0, 3).join(", ")}, how do you approach integration testing and handling edge cases for asynchronous data pipelines?`
