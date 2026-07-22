@@ -154,7 +154,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     }
     history.push({ role: "user", parts: [{ text: finalUserMessage }] });
 
-    let aiResponseText = "Mock response: That's interesting. How would you optimize that?";
+    let aiResponseText = "That's great! Could you tell me a bit more about your background and technical experience?";
 
     if (isCodingSession) {
       const codeStr = (codeContext || "").toLowerCase();
@@ -206,7 +206,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
        while (retries >= 0) {
          try {
            response = await genai.models.generateContent({
-             model: "gemini-2.5-flash",
+             model: "gemini-2.0-flash",
              contents: chatHistory as any,
              config: requestConfig
            });
@@ -219,15 +219,15 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
            }
            if (retries === 0 && (e.status === 503 || e.status === 429 || e.message?.includes('demand'))) {
              console.warn("Gemini AI chat unavailable after retries. Falling back to generic response.");
-             response = { text: "I'm currently experiencing some network lag on my end. Let's keep going. Can you elaborate a bit more on your previous point?" };
+             response = { text: "I'm currently experiencing a brief network pause on my end. Let me know if you'd like to elaborate further on your experience." };
              break;
            }
            throw e;
          }
        }
-       aiResponseText = response?.text || "I didn't quite catch that. Could you repeat?";
+       aiResponseText = response?.text || "Could you please elaborate a bit more on that?";
     } else {
-       console.warn("No GEMINI_API_KEY found, returning mock conversational response.");
+       console.warn("No GEMINI_API_KEY found, returning conversational fallback response.");
     }
 
     // 5. Save AI response

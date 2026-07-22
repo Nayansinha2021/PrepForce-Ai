@@ -373,7 +373,7 @@ export const executeConsoleCommand = async (req: Request, res: Response) => {
 
       let stats = `=== PREPFORCE MAINFRAME HUD ===\n`;
       stats += `Platform Uptime           : 28d 14h 52m (Operational)\n`;
-      stats += `Active Session Workers   : Gemini-2.5-Flash & WebSockets\n`;
+      stats += `Active Session Workers   : Gemini-2.0-Flash & WebSockets\n`;
       stats += `Registered Users         : ${users?.length || 0}\n`;
       stats += `Interviews Executed      : ${interviews?.length || 0}\n`;
       stats += `Exchanged Chat Messages  : ${msgCount || 0}\n`;

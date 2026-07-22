@@ -64,7 +64,7 @@ export const structureResumeData = async (text: string) => {
   while (retries >= 0) {
     try {
       const response = await genai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash",
         contents: prompt,
       });
       
