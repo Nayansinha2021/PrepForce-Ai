@@ -11,14 +11,74 @@ const getGenAI = () => {
   return apiKey ? new GoogleGenAI({ apiKey }) : null;
 };
 
-const DYNAMIC_FALLBACK_QUESTIONS = [
-  "That's great! Could you tell me a bit about your background and technical experience?",
-  "That sounds interesting! Could you share a specific technical challenge you faced while building that, and how you resolved it?",
-  "Great point! In terms of architecture and implementation, what key trade-offs did you have to consider?",
-  "That makes sense! How did you handle testing, debugging, or optimizing performance in that scenario?",
-  "Thanks for highlighting that! How do you usually approach collaboration and code reviews with your team when working on such tasks?",
-  "Understood! If you were to redesign or rebuild that feature today, what would you improve or do differently?"
-];
+const buildResumePromptAndGreeting = (interview: any) => {
+  const resumeCtx = interview?.parsed_resume_context || {};
+  const role = interview?.role || resumeCtx.role || "Software Developer";
+
+  const rawSkills = resumeCtx.skills;
+  const skillsList = Array.isArray(rawSkills) ? rawSkills.join(", ") : (typeof rawSkills === 'string' ? rawSkills : "Software Development, Data Structures, Algorithms");
+
+  const rawProjects = resumeCtx.projects;
+  const projectsList = Array.isArray(rawProjects) ? rawProjects.join(", ") : (typeof rawProjects === 'string' ? rawProjects : "Technical Projects");
+
+  const expSummary = typeof resumeCtx.experience === 'string' ? resumeCtx.experience : (Array.isArray(resumeCtx.experience) ? resumeCtx.experience.join(", ") : "professional software development experience");
+
+  let sysPrompt = `You are PrepForce AI, a Senior Technical Interviewer conducting a real technical interview for the position of "${role}".
+
+CANDIDATE RESUME SUMMARY:
+- Target Role: ${role}
+- Listed Skills: ${skillsList}
+- Featured Projects: ${projectsList}
+- Background & Experience: ${expSummary}`;
+
+  if (resumeCtx.targetJobDescription) {
+    sysPrompt += `\n- Target Job Description Requirements: "${resumeCtx.targetJobDescription}"`;
+  }
+
+  sysPrompt += `\n\nCRITICAL INTERVIEWER DIRECTIVES:
+1. Conduct a rigorous, highly realistic technical interview specifically tailored to the candidate's listed skills (${skillsList}), projects (${projectsList}), and target role (${role}).
+2. Ask targeted technical questions that test their actual understanding of the specific tools, libraries, frameworks, or projects listed on their resume.
+3. React directly to what the candidate just answered before moving on. Keep your tone professional, encouraging, and natural.
+4. Keep your responses short (2-3 sentences). Never print long lectures, bullet points, or boilerplate explanations.
+5. End every single turn with EXACTLY ONE clear follow-up question specifically about their resume skills, system design, or recent answer.
+6. NEVER repeat a question that has already been asked in this session. Do not break character.`;
+
+  const initialGreeting = `Hello! I'm PrepForce AI. I'll be conducting your technical interview for the ${role} position today. I reviewed your resume and noticed your background in ${skillsList}. Could you introduce yourself and briefly describe a recent project where you used these technologies?`;
+
+  return { sysPrompt, initialGreeting, role, skillsList, projectsList };
+};
+
+const generateResumeAwareFallback = (interview: any, previousModelMessages: string[]) => {
+  const resumeCtx = interview?.parsed_resume_context || {};
+  const role = interview?.role || resumeCtx.role || "Software Developer";
+
+  const rawSkills = resumeCtx.skills;
+  const skillsArray = Array.isArray(rawSkills) ? rawSkills : (typeof rawSkills === 'string' ? rawSkills.split(",") : ["Software Development"]);
+  const skills = skillsArray.map((s: string) => s.trim()).filter(Boolean);
+
+  const rawProjects = resumeCtx.projects;
+  const projectsArray = Array.isArray(rawProjects) ? rawProjects : (typeof rawProjects === 'string' ? rawProjects.split(",") : ["technical projects"]);
+  const projects = projectsArray.map((p: string) => p.trim()).filter(Boolean);
+
+  const topSkill = skills[0] || "your primary tech stack";
+  const secondSkill = skills[1] || "system design";
+  const mainProject = projects[0] || "your recent technical project";
+
+  const pool = [
+    `I noticed on your resume that you have experience with ${topSkill}. Could you explain how you applied ${topSkill} in ${mainProject}?`,
+    `In your experience as a ${role}, what was the most challenging technical or architectural decision you faced when working with ${secondSkill}?`,
+    `When building features using ${topSkill}, how do you approach performance optimization, scalability, and code maintainability?`,
+    `Could you walk me through the overall architecture of ${mainProject} and explain the key technical trade-offs you evaluated?`,
+    `With your background in ${skills.slice(0, 3).join(", ") || topSkill}, how do you approach testing, debugging, and resolving critical issues in production?`,
+    `How do you handle technical debt and balance speed of delivery with system robustness when working on ${role} responsibilities?`
+  ];
+
+  const available = pool.filter(q => !previousModelMessages.some(prev => prev.includes(q.trim()) || q.trim().includes(prev)));
+  if (available.length > 0) {
+    return available[Math.floor(Math.random() * available.length)];
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+};
 
 export const mockSessionCache = new Map<string, { interview: any, messages: any[], createdAt: number }>();
 
@@ -115,14 +175,9 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
       if (isCodingSession) {
         sysPrompt = `You are PrepForce AI, an expert Senior Staff Software Engineer and coding reviewer. Evaluate the candidate's code submission for technical correctness, time & space complexity (Big-O notation), edge cases, and optimization suggestions. Be structured, concise, and direct.`;
       } else {
-        sysPrompt = `You are PrepForce AI, an expert technical interviewer. The candidate is applying for the role of ${interview.role}. Context from their resume: ${JSON.stringify(interview.parsed_resume_context)}.`;
-        
-        if (interview.parsed_resume_context?.targetJobDescription) {
-          sysPrompt += `\n\nCRITICAL INSTRUCTION: The candidate has provided the exact Job Description for this role: "${interview.parsed_resume_context.targetJobDescription}". You MUST evaluate their answers against this specific job description. Ask questions that test if they meet the specific requirements listed in this JD based on their resume.`;
-        }
-        
-        sysPrompt += `\n\nKeep your responses short, conversational, and ask one clear follow-up question based on their previous answer. Do not break character.`;
-        initialGreeting = "Hello! I'm PrepForce AI. I'll be conducting your technical interview today. Can you start by telling me a bit about your background?";
+        const built = buildResumePromptAndGreeting(interview);
+        sysPrompt = built.sysPrompt;
+        initialGreeting = built.initialGreeting;
       }
 
       if (isMockSession) {
@@ -237,13 +292,8 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     const isRepeated = previousModelMessages.some(prevMsg => prevMsg === aiResponseText || (aiResponseText && prevMsg.includes(aiResponseText)));
 
     if (!aiResponseText || isRepeated) {
-       console.warn("AI response was empty or duplicate of previous message. Selecting dynamic non-repeating fallback.");
-       const availableFallbacks = DYNAMIC_FALLBACK_QUESTIONS.filter(q => !previousModelMessages.includes(q.trim()));
-       if (availableFallbacks.length > 0) {
-         aiResponseText = availableFallbacks[Math.floor(Math.random() * availableFallbacks.length)];
-       } else {
-         aiResponseText = DYNAMIC_FALLBACK_QUESTIONS[Math.floor(Math.random() * DYNAMIC_FALLBACK_QUESTIONS.length)];
-       }
+       console.warn("AI response was empty or duplicate of previous message. Selecting dynamic resume-aware non-repeating fallback.");
+       aiResponseText = generateResumeAwareFallback(interview, previousModelMessages);
     }
 
     // 5. Save AI response
