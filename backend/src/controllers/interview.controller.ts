@@ -36,41 +36,50 @@ CANDIDATE RESUME SUMMARY:
   }
 
   sysPrompt += `\n\nCRITICAL INTERVIEWER DIRECTIVES:
-1. Conduct a rigorous, highly realistic technical interview specifically tailored to the candidate's listed skills (${skillsList}), projects (${projectsList}), and target role (${role}).
-2. Ask targeted technical questions that test their actual understanding of the specific tools, libraries, frameworks, or projects listed on their resume.
-3. React directly to what the candidate just answered before moving on. Keep your tone professional, encouraging, and natural.
-4. Keep your responses short (2-3 sentences). Never print long lectures, bullet points, or boilerplate explanations.
-5. End every single turn with EXACTLY ONE clear follow-up question specifically about their resume skills, system design, or recent answer.
-6. NEVER repeat a question that has already been asked in this session. Do not break character.`;
+1. GREETING CANDIDATE BY NAME: When the candidate introduces themselves or states their name (e.g. "My name is [Name]" or "I am [Name]"), ALWAYS greet them warmly by their name first (e.g. "Nice to meet you, [Name]!").
+2. STRICT RESUME RELEVANCE: Ask questions ONLY related to the specific technical skills (${skillsList}), projects (${projectsList}), and experience listed in their resume above.
+3. STRICT MEDIUM DIFFICULTY LEVEL: All technical questions MUST be at a strict MEDIUM DIFFICULTY level (testing intermediate concepts, state management, asynchronous handling, system architecture, DB/API performance trade-offs, and edge cases related to their resume skills). Do NOT ask generic entry-level trivia or surface definitions.
+4. REACT & FOLLOW UP: Acknowledge and react to what the candidate just answered in 1 concise sentence, then ask EXACTLY ONE focused medium-level technical question.
+5. CONCISE FORMAT: Keep each response short (2-3 sentences max). Never print long lectures, bullet points, or multiple questions at once.
+6. ANTI-REPETITION: NEVER repeat a question that has already been asked in this session. Do not break character.`;
 
-  const initialGreeting = `Hello! Welcome to PrepForce AI. I'll be conducting your technical interview for the ${role} position today. To start off, please introduce yourself, tell me about your background, and share a recent project where you applied your technical skills.`;
+  const initialGreeting = `Hello! Welcome to PrepForce AI. I'll be conducting your technical interview for the ${role} position today. To start off, please introduce yourself, tell me your name, and share a brief overview of your technical background.`;
 
   return { sysPrompt, initialGreeting, role, skillsList, projectsList };
 };
 
-const generateResumeAwareFallback = (interview: any, previousModelMessages: string[]) => {
+const generateResumeAwareFallback = (interview: any, previousModelMessages: string[], candidateMessage: string = "") => {
   const resumeCtx = interview?.parsed_resume_context || {};
   const role = interview?.role || resumeCtx.role || "Software Developer";
 
   const rawSkills = resumeCtx.skills;
-  const skillsArray = Array.isArray(rawSkills) ? rawSkills : (typeof rawSkills === 'string' ? rawSkills.split(",") : ["Software Development"]);
+  const skillsArray = Array.isArray(rawSkills) ? rawSkills : (typeof rawSkills === 'string' ? rawSkills.split(",") : ["JavaScript", "React", "Node.js"]);
   const skills = skillsArray.map((s: string) => s.trim()).filter(Boolean);
 
   const rawProjects = resumeCtx.projects;
-  const projectsArray = Array.isArray(rawProjects) ? rawProjects : (typeof rawProjects === 'string' ? rawProjects.split(",") : ["technical projects"]);
+  const projectsArray = Array.isArray(rawProjects) ? rawProjects : (typeof rawProjects === 'string' ? rawProjects.split(",") : ["Full-Stack Application"]);
   const projects = projectsArray.map((p: string) => p.trim()).filter(Boolean);
 
   const topSkill = skills[0] || "your primary tech stack";
-  const secondSkill = skills[1] || "system design";
+  const secondSkill = skills[1] || "React/State Management";
+  const thirdSkill = skills[2] || "Node.js/APIs";
   const mainProject = projects[0] || "your recent technical project";
 
+  // Extract candidate name if present in message
+  let candidateName = "";
+  const nameMatch = candidateMessage.match(/(?:my name is|i am|i'm|this is|call me)\s+([a-zA-Z]+)/i);
+  if (nameMatch && nameMatch[1]) {
+    candidateName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1).toLowerCase();
+  }
+
+  const nameGreeting = candidateName ? `Nice to meet you, ${candidateName}! ` : "Thanks for introducing yourself! ";
+
   const pool = [
-    `I noticed on your resume that you have experience with ${topSkill}. Could you explain how you applied ${topSkill} in ${mainProject}?`,
-    `In your experience as a ${role}, what was the most challenging technical or architectural decision you faced when working with ${secondSkill}?`,
-    `When building features using ${topSkill}, how do you approach performance optimization, scalability, and code maintainability?`,
-    `Could you walk me through the overall architecture of ${mainProject} and explain the key technical trade-offs you evaluated?`,
-    `With your background in ${skills.slice(0, 3).join(", ") || topSkill}, how do you approach testing, debugging, and resolving critical issues in production?`,
-    `How do you handle technical debt and balance speed of delivery with system robustness when working on ${role} responsibilities?`
+    `${nameGreeting}Looking at your experience with ${topSkill} in ${mainProject}, how do you handle state synchronization, async error handling, and performance bottlenecks under load?`,
+    `In your role with ${secondSkill}, what intermediate architectural pattern (e.g., custom hooks, caching, or middleware) did you implement to optimize application responsiveness?`,
+    `When designing backend API endpoints using ${thirdSkill || topSkill}, how do you structure database queries, transaction rollbacks, and rate-limiting to prevent race conditions?`,
+    `Walk me through a medium-complexity technical decision you made while building ${mainProject}. What were the key trade-offs between memory overhead and execution speed?`,
+    `With your background in ${skills.slice(0, 3).join(", ")}, how do you approach integration testing and handling edge cases for asynchronous data pipelines?`
   ];
 
   const available = pool.filter(q => !previousModelMessages.some(prev => prev.includes(q.trim()) || q.trim().includes(prev)));
@@ -293,7 +302,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
 
     if (!aiResponseText || isRepeated) {
        console.warn("AI response was empty or duplicate of previous message. Selecting dynamic resume-aware non-repeating fallback.");
-       aiResponseText = generateResumeAwareFallback(interview, previousModelMessages);
+       aiResponseText = generateResumeAwareFallback(interview, previousModelMessages, finalUserMessage);
     }
 
     // 5. Save AI response
