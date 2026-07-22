@@ -43,7 +43,7 @@ CANDIDATE RESUME SUMMARY:
 5. End every single turn with EXACTLY ONE clear follow-up question specifically about their resume skills, system design, or recent answer.
 6. NEVER repeat a question that has already been asked in this session. Do not break character.`;
 
-  const initialGreeting = `Hello! I'm PrepForce AI. I'll be conducting your technical interview for the ${role} position today. I reviewed your resume and noticed your background in ${skillsList}. Could you introduce yourself and briefly describe a recent project where you used these technologies?`;
+  const initialGreeting = `Hello! Welcome to PrepForce AI. I'll be conducting your technical interview for the ${role} position today. To start off, please introduce yourself, tell me about your background, and share a recent project where you applied your technical skills.`;
 
   return { sysPrompt, initialGreeting, role, skillsList, projectsList };
 };

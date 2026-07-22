@@ -16,7 +16,7 @@ function InterviewRoomContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("sessionId");
   const [transcript, setTranscript] = useState("");
-  const [aiResponse, setAiResponse] = useState("Hello! I'm PrepForce AI. I'll be conducting your technical interview today.");
+  const [aiResponse, setAiResponse] = useState("Hello! Welcome to PrepForce AI. I'll be conducting your technical interview today. To start off, please introduce yourself and tell me a bit about your background and technical experience.");
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [timeLeft, setTimeLeft] = useState(420); // 7 minutes in seconds
@@ -252,6 +252,15 @@ function InterviewRoomContent() {
       window.speechSynthesis.speak(utterance);
     }
   };
+
+  // Speak initial greeting on room mount
+  useEffect(() => {
+    const greeting = "Hello! Welcome to PrepForce AI. I'll be conducting your technical interview today. To start off, please introduce yourself and tell me a bit about your background and technical experience.";
+    const timer = setTimeout(() => {
+      speakAiResponse(greeting);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleUserFinishedSpeaking = async (finalTranscript: string) => {
      setTranscript(""); // Clear UI
