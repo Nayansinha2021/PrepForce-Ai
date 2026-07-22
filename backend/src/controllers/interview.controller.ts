@@ -36,10 +36,10 @@ CANDIDATE RESUME SUMMARY:
   }
 
   sysPrompt += `\n\nCRITICAL INTERVIEWER DIRECTIVES:
-1. GREETING CANDIDATE BY NAME: When the candidate introduces themselves or states their name (e.g. "My name is [Name]" or "I am [Name]"), ALWAYS greet them warmly by their name first (e.g. "Nice to meet you, [Name]!").
-2. STRICT RESUME RELEVANCE: Ask questions ONLY related to the specific technical skills (${skillsList}), projects (${projectsList}), and experience listed in their resume above.
-3. STRICT MEDIUM DIFFICULTY LEVEL: All technical questions MUST be at a strict MEDIUM DIFFICULTY level (testing intermediate concepts, state management, asynchronous handling, system architecture, DB/API performance trade-offs, and edge cases related to their resume skills). Do NOT ask generic entry-level trivia or surface definitions.
-4. REACT & FOLLOW UP: Acknowledge and react to what the candidate just answered in 1 concise sentence, then ask EXACTLY ONE focused medium-level technical question.
+1. GREET CANDIDATE BY NAME: If the candidate introduces themselves or mentions their name (e.g. "My name is Naya", "I am Naya"), ALWAYS greet them warmly by their name first (e.g. "Nice to meet you, Naya!").
+2. STRICT RESUME RELEVANCE ONLY: You MUST ask questions ONLY related to the specific technical skills (${skillsList}), projects (${projectsList}), and experience listed in their resume above. Do NOT ask off-topic, non-technical, or generic questions.
+3. ADAPT TO CANDIDATE'S RESPONSES: Read what the candidate says during the interview. Acknowledge their statement directly in 1 sentence, and then ask a medium-level technical question that connects their answer directly to their resume skills.
+4. STRICT MEDIUM DIFFICULTY LEVEL: All technical questions MUST be at a strict MEDIUM DIFFICULTY level (testing intermediate software concepts, system architecture, state management, asynchronous handling, DB query optimization, API performance trade-offs, and edge cases related to their resume tools).
 5. CONCISE FORMAT: Keep each response short (2-3 sentences max). Never print long lectures, bullet points, or multiple questions at once.
 6. ANTI-REPETITION: NEVER repeat a question that has already been asked in this session. Do not break character.`;
 
@@ -72,14 +72,20 @@ const generateResumeAwareFallback = (interview: any, previousModelMessages: stri
     candidateName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1).toLowerCase();
   }
 
-  const nameGreeting = candidateName ? `Nice to meet you, ${candidateName}! ` : "Thanks for introducing yourself! ";
+  const nameGreeting = candidateName ? `Nice to meet you, ${candidateName}! ` : "";
+
+  // Dynamic acknowledgment of what candidate said
+  let userAck = "";
+  if (candidateMessage && candidateMessage.trim().length > 5) {
+    userAck = `Thanks for explaining that. `;
+  }
 
   const pool = [
-    `${nameGreeting}Looking at your experience with ${topSkill} in ${mainProject}, how do you handle state synchronization, async error handling, and performance bottlenecks under load?`,
-    `In your role with ${secondSkill}, what intermediate architectural pattern (e.g., custom hooks, caching, or middleware) did you implement to optimize application responsiveness?`,
-    `When designing backend API endpoints using ${thirdSkill || topSkill}, how do you structure database queries, transaction rollbacks, and rate-limiting to prevent race conditions?`,
-    `Walk me through a medium-complexity technical decision you made while building ${mainProject}. What were the key trade-offs between memory overhead and execution speed?`,
-    `With your background in ${skills.slice(0, 3).join(", ")}, how do you approach integration testing and handling edge cases for asynchronous data pipelines?`
+    `${nameGreeting}${userAck}Looking at your experience with ${topSkill} in ${mainProject}, how do you handle state synchronization, async error handling, and performance bottlenecks under load?`,
+    `${nameGreeting}${userAck}Building on what you mentioned and your background with ${secondSkill}, what intermediate architectural pattern (e.g., custom hooks, caching, or middleware) did you implement to optimize application responsiveness?`,
+    `${nameGreeting}${userAck}Considering your experience designing backend API endpoints using ${thirdSkill || topSkill}, how do you structure database queries, transaction rollbacks, and rate-limiting to prevent race conditions?`,
+    `${nameGreeting}${userAck}Walk me through a medium-complexity technical decision you made while building ${mainProject}. What were the key trade-offs between memory overhead and execution speed?`,
+    `${nameGreeting}${userAck}With your background in ${skills.slice(0, 3).join(", ")}, how do you approach integration testing and handling edge cases for asynchronous data pipelines?`
   ];
 
   const available = pool.filter(q => !previousModelMessages.some(prev => prev.includes(q.trim()) || q.trim().includes(prev)));
