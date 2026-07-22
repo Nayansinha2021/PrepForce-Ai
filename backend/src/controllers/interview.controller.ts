@@ -57,13 +57,13 @@ const generateResumeAwareFallback = (interview: any, previousModelMessages: stri
   const skills = skillsArray.map((s: string) => s.trim()).filter(Boolean);
 
   const rawProjects = resumeCtx.projects;
-  const projectsArray = Array.isArray(rawProjects) ? rawProjects : (typeof rawProjects === 'string' ? rawProjects.split(",") : ["Full-Stack Application"]);
-  const projects = projectsArray.map((p: string) => p.trim()).filter(Boolean);
+  const projectsArray = Array.isArray(rawProjects) ? rawProjects : (typeof rawProjects === 'string' ? rawProjects.split(",") : ["Full-Stack Web Project"]);
+  const projects = projectsArray.map((p: string) => p.trim()).filter(p => p.length > 0 && !p.toLowerCase().includes("mock"));
 
   const topSkill = skills[0] || "your primary tech stack";
   const secondSkill = skills[1] || "React/State Management";
   const thirdSkill = skills[2] || "Node.js/APIs";
-  const mainProject = projects[0] || "your recent technical project";
+  const mainProject = projects[0] || "your technical project";
 
   // Extract candidate name if present in message
   let candidateName = "";

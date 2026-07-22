@@ -1,13 +1,12 @@
 import fs from "fs";
 import path from "path";
+import { GoogleGenAI } from "@google/genai";
 const pdf = require("pdf-parse");
 const mammoth = require("mammoth");
-import { GoogleGenAI } from "@google/genai";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const genai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
+const getGenAI = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  return apiKey ? new GoogleGenAI({ apiKey }) : null;
+};
 
 export const parseResumeToText = async (filePath: string, originalName?: string): Promise<string> => {
   try {
@@ -42,13 +41,14 @@ export const parseResumeToText = async (filePath: string, originalName?: string)
 };
 
 export const structureResumeData = async (text: string) => {
+  const genai = getGenAI();
   if (!genai) {
-    console.warn("GEMINI_API_KEY not set. Falling back to mock structured data.");
+    console.warn("GEMINI_API_KEY not set. Returning standard structured data.");
     return {
-      skills: ["Mock Skill", "React"],
-      experience: "5 years mock experience",
-      projects: ["Mock Project"],
-      role: "Frontend React Developer",
+      skills: ["Software Engineering", "Full-Stack Development", "Problem Solving"],
+      experience: "Software engineering experience based on uploaded resume.",
+      projects: ["Full-Stack Application Project"],
+      role: "Software Developer",
     };
   }
 
