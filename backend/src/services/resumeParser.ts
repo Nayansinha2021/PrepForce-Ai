@@ -114,10 +114,22 @@ export const extractTechStack = async (text: string): Promise<string[]> => {
         model: modelName,
         contents: prompt,
       });
-      const jsonStr = response.text?.replace(/```json/g, "").replace(/```/g, "").trim() || "[]";
-      return JSON.parse(jsonStr);
-    } catch (error) {
-      console.warn(`Model ${modelName} failed to extract tech stack...`);
+      
+      let responseText = response.text || "[]";
+      // Try to extract just the array block in case Gemini wrapped it in markdown or conversation
+      const arrayMatch = responseText.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        responseText = arrayMatch[0];
+      } else {
+        responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+      }
+      
+      const parsed = JSON.parse(responseText);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch (error: any) {
+      console.warn(`Model ${modelName} failed to extract tech stack:`, error.message);
     }
   }
   return ["JavaScript", "React", "Node.js"]; // fallback
