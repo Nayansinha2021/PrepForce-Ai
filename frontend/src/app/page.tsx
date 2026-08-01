@@ -75,7 +75,7 @@ export default function Home() {
           <img 
             src="/hero-bg.png" 
             alt="Hero Background" 
-            className="w-full h-full object-cover opacity-40 grayscale" 
+            className="w-full h-full object-cover opacity-60 grayscale" 
           />
         </div>
 
