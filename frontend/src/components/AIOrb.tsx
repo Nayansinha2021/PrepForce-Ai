@@ -40,25 +40,25 @@ export default function AIOrb({ state, className = "", externalAmplitude }: AIOr
     idle: {
       scale: [1, 1.05, 1],
       y: [-5, 5, -5],
-      boxShadow: "0px 0px 30px 10px rgba(37,99,235,0.2)",
+      boxShadow: "0px 0px 30px 10px rgba(255,255,255,0.15)",
       transition: { repeat: Infinity, duration: 4, ease: "easeInOut" }
     },
     listening: {
       scale: 1,
       y: 0,
-      boxShadow: "0px 0px 40px 15px rgba(37,99,235,0.4)",
+      boxShadow: "0px 0px 40px 15px rgba(255,255,255,0.25)",
       transition: { duration: 0.5 }
     },
     thinking: {
       scale: [1, 0.98, 1],
       x: [-2, 2, -1, 1, 0],
-      boxShadow: "0px 0px 20px 5px rgba(37,99,235,0.3)",
+      boxShadow: "0px 0px 20px 5px rgba(255,255,255,0.2)",
       transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" }
     },
     speaking: {
       scale: amplitude,
       y: 0,
-      boxShadow: `0px 0px ${40 * amplitude}px ${20 * amplitude}px rgba(37,99,235,0.5)`,
+      boxShadow: `0px 0px ${40 * amplitude}px ${20 * amplitude}px rgba(255,255,255,0.3)`,
       transition: { duration: 0.15 }
     }
   };
@@ -88,7 +88,7 @@ export default function AIOrb({ state, className = "", externalAmplitude }: AIOr
           return (
             <motion.div
               key={p.id}
-              className="absolute rounded-full bg-blue-500/60 blur-[1px]"
+              className="absolute rounded-full bg-white/60 blur-[1px]"
               style={{
                 width: p.size,
                 height: p.size,
@@ -114,7 +114,7 @@ export default function AIOrb({ state, className = "", externalAmplitude }: AIOr
       <motion.div
         variants={coreVariants}
         animate={state}
-        className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden"
+        className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-br from-white to-neutral-400 flex items-center justify-center overflow-hidden"
       >
         {/* Inner glow / texture */}
         <div className="absolute inset-0 bg-white/20 mix-blend-overlay rounded-full blur-[4px]" />
@@ -133,7 +133,7 @@ export default function AIOrb({ state, className = "", externalAmplitude }: AIOr
           scale: state === "speaking" ? 1.2 * amplitude : 1
         }}
         transition={{ duration: 0.3 }}
-        className="absolute inset-0 bg-blue-500 rounded-full blur-[80px] -z-10"
+        className="absolute inset-0 bg-white rounded-full blur-[80px] -z-10"
       />
     </div>
   );

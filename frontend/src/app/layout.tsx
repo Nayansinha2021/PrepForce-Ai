@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} font-sans antialiased bg-[#0A0F1C] text-slate-100 selection:bg-blue-500/30`}>
+      <body className={`${inter.variable} font-sans antialiased bg-black text-slate-100 selection:bg-white/20`}>
         <Toaster position="top-center" toastOptions={{ className: "font-sans font-medium" }} />
         {children}
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />

@@ -92,6 +92,7 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
     }
 
     const userMessages = existingMessages ? existingMessages.filter(m => m.role === 'user') : [];
+    const modelMessages = existingMessages ? existingMessages.filter(m => m.role === 'model') : [];
     const userSpeechText = userMessages.map(m => m.content).join(" ");
     const fillerWords = ["um", "ah", "basically", "like", "so", "actually"];
     const fillerCounts: Record<string, number> = {};
@@ -105,44 +106,17 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
     });
 
     const totalWords = userSpeechText.split(/\s+/).filter(Boolean).length;
+    const questionsAnswered = userMessages.length;
+    const isShortInterview = questionsAnswered <= 1 || totalWords < 15;
 
-    // Check for early interview termination (fewer than 15 total words spoken by user)
-    if (!existingMessages || existingMessages.length === 0 || userMessages.length === 0 || totalWords < 15) {
-       const incompleteReport = {
-         overallScore: 0,
-         technicalDepth: 0,
-         communication: 0,
-         confidence: 0,
-         strengths: ["Session initiated"],
-         improvements: ["Participate in the interview by answering questions to receive a full AI evaluation"],
-         behavioralAnalysis: "Interview ended before sufficient response data was gathered to analyze non-verbal cues or performance.",
-         speechAnalytics: {
-           wpm: 0,
-           fillers: {},
-           totalFillers: 0
-         }
-       };
-       if (isMockSession) {
-         interviewData.scorecard = incompleteReport;
-       } else {
-         await supabase
-           .from('interviews')
-           .update({ scorecard: incompleteReport, status: 'completed' })
-           .eq('id', sessionId);
-       }
-       return res.json({ 
-         report: { 
-           ...incompleteReport, 
-           behavioralData: interviewData.behavioral_data 
-         } 
-       });
-    }
+    // Even for very short interviews (0 words), we generate a real scored report
+    // No early return with all zeros — every session gets a genuine evaluation
 
     const estimatedMinutes = Math.max(0.5, userMessages.length * 0.4); 
     const calculatedWpm = totalWords > 0 ? Math.round(totalWords / estimatedMinutes) : 0;
 
     const speechAnalytics = {
-      wpm: calculatedWpm || 110,
+      wpm: calculatedWpm || 0,
       fillers: fillerCounts,
       totalFillers: totalFillers
     };
@@ -153,9 +127,26 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
       : "";
 
     if (!genai) {
-      const calcTech = Math.min(95, Math.max(40, Math.round(totalWords * 0.5 + 30)));
-      const calcComm = Math.min(95, Math.max(45, Math.round(calculatedWpm > 90 && calculatedWpm < 160 ? 85 : 70)));
-      const calcConf = Math.min(95, Math.max(40, Math.round(85 - (totalFillers * 4))));
+      // No API key — calculate scores from available signals
+      let calcTech: number, calcComm: number, calcConf: number;
+      
+      if (questionsAnswered === 0 || totalWords === 0) {
+        // User didn't answer anything at all
+        calcTech = 5;
+        calcComm = 5;
+        calcConf = 5;
+      } else if (isShortInterview) {
+        // User answered very briefly (1 question or < 15 words)
+        const wordScore = Math.min(30, totalWords * 2);
+        calcTech = Math.max(10, Math.min(35, wordScore + 10));
+        calcComm = Math.max(10, Math.min(30, wordScore + 5));
+        calcConf = Math.max(10, Math.min(30, wordScore));
+      } else {
+        // Normal interview length
+        calcTech = Math.min(95, Math.max(40, Math.round(totalWords * 0.5 + 30)));
+        calcComm = Math.min(95, Math.max(45, Math.round(calculatedWpm > 90 && calculatedWpm < 160 ? 85 : 70)));
+        calcConf = Math.min(95, Math.max(40, Math.round(85 - (totalFillers * 4))));
+      }
       const calcOverall = Math.round((calcTech + calcComm + calcConf) / 3);
 
       const mockReport = {
@@ -163,9 +154,19 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
          technicalDepth: calcTech,
          communication: calcComm,
          confidence: calcConf,
-         strengths: ["Answered core interview questions", "Active engagement during session"],
-         improvements: ["Provide more in-depth architectural examples in answers"],
-         behavioralAnalysis: "Demonstrated steady gaze and focused posture during response delivery.",
+         strengths: questionsAnswered === 0 
+           ? ["Started the interview session"] 
+           : ["Answered core interview questions", "Active engagement during session"],
+         improvements: questionsAnswered === 0 
+           ? ["Answer the interviewer's questions to demonstrate your technical skills", "Try to complete at least 4-5 questions for a comprehensive evaluation"] 
+           : isShortInterview 
+             ? ["Complete more questions for a thorough evaluation", "Provide longer, more detailed answers to demonstrate depth"]
+             : ["Provide more in-depth architectural examples in answers"],
+         behavioralAnalysis: questionsAnswered === 0 
+           ? "The interview was ended before any responses were provided. A complete interview with thoughtful answers is needed for proper behavioral analysis."
+           : isShortInterview
+             ? "Limited data available due to early interview termination. Based on the brief interaction, the candidate showed initial engagement but did not provide enough responses for a comprehensive behavioral analysis."
+             : "Demonstrated steady gaze and focused posture during response delivery.",
          speechAnalytics
       };
       if (isMockSession) {
@@ -184,19 +185,36 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
       });
     }
 
+    const shortInterviewContext = isShortInterview 
+      ? `\n\nIMPORTANT: This was a SHORT/EARLY-TERMINATED interview. The candidate only answered ${questionsAnswered} question(s) with ${totalWords} total words. You MUST still give real, honest scores based on whatever they DID say. Do NOT give perfect scores — score proportionally to what was demonstrated. If they said almost nothing, scores should be very low (5-20 range). If they answered 1 question decently, scores should be in the 15-40 range. Be honest and fair.`
+      : "";
+
     const prompt = `
-      Analyze the interview transcript and evaluate the candidate.
-      Generate a JSON object with:
-      "overallScore": 0-100,
-      "technicalDepth": 0-100,
-      "communication": 0-100,
-      "confidence": 0-100,
-      "strengths": [array of strings],
-      "improvements": [array of strings],
-      "behavioralAnalysis": "A 2-3 sentence paragraph about their non-verbal cues based on the provided behavioral data, if any."
+You are a strict, fair interview evaluator. Analyze the following interview transcript and evaluate the candidate's performance.
+
+SCORING RULES:
+- All scores must be between 0-100. Be HONEST and FAIR — do NOT inflate scores.
+- If the candidate answered very few questions or gave very short answers, scores SHOULD be low.
+- If the candidate gave incorrect technical answers, "technicalDepth" should be penalized.
+- "communication" measures clarity, structure, and articulation of responses.
+- "confidence" measures assertiveness, lack of hesitation/fillers, and directness.
+- "overallScore" should be a weighted average reflecting the entire interview quality.
+- "strengths" should list 2-4 specific things the candidate did well (from actual transcript evidence).
+- "improvements" should list 2-4 specific, actionable areas to improve (from actual transcript evidence).
+- "behavioralAnalysis" should be a 2-3 sentence paragraph about their demeanor and non-verbal cues based on the behavioral data, if any.
+${shortInterviewContext}
+
+Return ONLY a valid JSON object (no markdown wrapping) with these exact keys:
+"overallScore": number (0-100),
+"technicalDepth": number (0-100),
+"communication": number (0-100),
+"confidence": number (0-100),
+"strengths": [array of strings],
+"improvements": [array of strings],
+"behavioralAnalysis": "string"
     `;
 
-    const modelsToTry = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"];
+    const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
     let response: any = null;
     for (const modelName of modelsToTry) {
       try {

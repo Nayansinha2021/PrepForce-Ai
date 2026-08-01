@@ -232,13 +232,13 @@ function CodingRoomContent() {
   };
 
   return (
-    <div className="h-screen bg-[#0A0F1C] text-slate-100 flex flex-col selection:bg-blue-500/30 overflow-hidden font-sans">
+    <div className="h-screen bg-black text-slate-100 flex flex-col selection:bg-white/20 overflow-hidden font-sans">
       
       {/* Top Header */}
-      <header className="p-4 px-6 flex justify-between items-center z-10 bg-[#0A0F1C] border-b border-white/10 shadow-sm shrink-0">
+      <header className="p-4 px-6 flex justify-between items-center z-10 bg-black border-b border-white/10 shadow-sm shrink-0">
         <div className="flex items-center gap-4">
-           <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-1.5 rounded flex items-center justify-center shadow-lg">
-             <CheckCircle2 className="w-4 h-4 text-white" />
+           <div className="bg-white p-1.5 rounded flex items-center justify-center shadow-lg">
+             <CheckCircle2 className="w-4 h-4 text-black" />
            </div>
           <span className="font-bold text-sm tracking-wide text-white">CODING CHALLENGE</span>
         </div>
@@ -254,13 +254,13 @@ function CodingRoomContent() {
       <main className="flex-grow flex flex-col md:flex-row min-h-0">
         
         {/* Left Side: Problem Description */}
-        <div className="w-full md:w-[40%] border-r border-white/10 flex flex-col bg-[#0D1326] overflow-y-auto">
+        <div className="w-full md:w-[40%] border-r border-white/10 flex flex-col bg-neutral-950 overflow-y-auto">
           <div className="p-8 space-y-6">
              <div className="flex items-center gap-3 mb-6">
                 <span className={`px-3 py-1 text-xs font-bold rounded ${
-                  currentProblem.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' : 
-                  currentProblem.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' : 
-                  'bg-red-500/20 text-red-400'
+                  currentProblem.difficulty === 'Easy' ? 'bg-white/10 text-white border border-white/20' : 
+                  currentProblem.difficulty === 'Medium' ? 'bg-white/5 text-slate-300 border border-white/10' : 
+                  'bg-white/[0.03] text-slate-400 border border-white/5'
                 }`}>
                   {currentProblem.difficulty}
                 </span>
@@ -273,13 +273,13 @@ function CodingRoomContent() {
 
              {/* AI Feedback Section */}
              {(isThinking || aiFeedback) && (
-               <div className="mt-8 p-6 bg-blue-900/20 border border-blue-500/30 rounded-xl">
-                 <h3 className="text-blue-400 font-bold mb-3 flex items-center gap-2">
+               <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-xl">
+                 <h3 className="text-white font-bold mb-3 flex items-center gap-2">
                    <Send className="w-4 h-4" /> AI Feedback
                  </h3>
                  {isThinking ? (
                    <div className="flex items-center gap-3 text-slate-300">
-                     <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                      Evaluating your code...
                    </div>
                  ) : (
@@ -290,23 +290,23 @@ function CodingRoomContent() {
 
              {/* Execution Output Section */}
              {(isRunning || executionOutput || testResults || testError) && (
-               <div className="mt-4 p-6 bg-slate-900/40 border border-slate-700/50 rounded-xl space-y-4">
+               <div className="mt-4 p-6 bg-neutral-900/40 border border-white/10 rounded-xl space-y-4">
                  <h3 className="text-white font-bold mb-3 flex items-center gap-2">
-                   <Play className="w-4 h-4 text-emerald-400" /> Execution Results
+                   <Play className="w-4 h-4 text-white" /> Execution Results
                  </h3>
                  {isRunning ? (
                    <div className="flex items-center gap-3 text-slate-300">
-                     <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                      Running test cases...
                    </div>
                  ) : testError ? (
-                   <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">{testError}</div>
+                   <div className="text-slate-400 font-mono text-sm whitespace-pre-wrap">{testError}</div>
                  ) : testResults ? (
                    <div className="space-y-4">
                      <div className="flex items-center justify-between border-b border-white/5 pb-2">
                        <span className="text-sm font-semibold text-slate-300">Test Cases Status</span>
                        <span className={`px-2 py-0.5 text-xs font-bold rounded ${
-                         testResults.every(r => r.passed) ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                         testResults.every(r => r.passed) ? 'bg-white/10 text-white' : 'bg-white/5 text-slate-400'
                        }`}>
                          {testResults.filter(r => r.passed).length} / {testResults.length} Passed
                        </span>
@@ -316,7 +316,7 @@ function CodingRoomContent() {
                          <div key={tr.index} className="p-4 bg-black/25 rounded-lg border border-white/5 space-y-2">
                            <div className="flex items-center justify-between">
                              <span className="text-xs font-bold text-slate-400">Test Case {tr.index}</span>
-                             <span className={`text-xs font-bold ${tr.passed ? 'text-green-400' : 'text-red-400'}`}>
+                             <span className={`text-xs font-bold ${tr.passed ? 'text-white' : 'text-slate-500'}`}>
                                {tr.passed ? 'Passed ✓' : 'Failed ✗'}
                              </span>
                            </div>
@@ -332,8 +332,8 @@ function CodingRoomContent() {
                            </div>
                            {!tr.passed && (
                              <div className="text-xs font-mono">
-                               <span className="text-red-500 block font-bold">Got</span>
-                               <span className="text-red-400 block whitespace-pre-wrap">{tr.actual}</span>
+                               <span className="text-slate-500 block font-bold">Got</span>
+                               <span className="text-slate-400 block whitespace-pre-wrap">{tr.actual}</span>
                              </div>
                            )}
                            {tr.logs.length > 0 && (
@@ -364,7 +364,7 @@ function CodingRoomContent() {
                   <select 
                      value={currentProblem.id}
                      onChange={handleProblemChange}
-                     className="appearance-none bg-[#1E1E1E] text-slate-300 text-sm pl-4 pr-10 py-1.5 rounded border border-white/10 focus:outline-none focus:border-blue-500 cursor-pointer hover:bg-white/5 transition-colors max-w-[200px] truncate"
+                     className="appearance-none bg-[#1E1E1E] text-slate-300 text-sm pl-4 pr-10 py-1.5 rounded border border-white/10 focus:outline-none focus:border-white cursor-pointer hover:bg-white/5 transition-colors max-w-[200px] truncate"
                   >
                      {problems.map(p => (
                        <option key={p.id} value={p.id} className="bg-[#1E1E1E] text-slate-200">{p.title}</option>
@@ -376,7 +376,7 @@ function CodingRoomContent() {
                   <select 
                      value={language}
                      onChange={handleLanguageChange}
-                     className="appearance-none bg-[#1E1E1E] text-slate-300 text-sm pl-4 pr-10 py-1.5 rounded border border-white/10 focus:outline-none focus:border-blue-500 cursor-pointer hover:bg-white/5 transition-colors"
+                     className="appearance-none bg-[#1E1E1E] text-slate-300 text-sm pl-4 pr-10 py-1.5 rounded border border-white/10 focus:outline-none focus:border-white cursor-pointer hover:bg-white/5 transition-colors"
                   >
                      <option value="javascript" className="bg-[#1E1E1E] text-slate-200">JavaScript</option>
                      <option value="python" className="bg-[#1E1E1E] text-slate-200">Python</option>
@@ -390,7 +390,7 @@ function CodingRoomContent() {
               <button 
                 onClick={runCode}
                 disabled={isRunning || isThinking}
-                className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-1.5 bg-white hover:bg-slate-200 text-black rounded text-sm font-medium transition-colors disabled:opacity-50"
               >
                 <Play className="w-4 h-4" />
                 {isRunning ? "Running..." : "Run Code"}
@@ -398,7 +398,7 @@ function CodingRoomContent() {
               <button 
                 onClick={submitCodeForReview}
                 disabled={isRunning || isThinking}
-                className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-1.5 bg-white/10 border border-white/20 hover:bg-white/20 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
                 {isThinking ? "Evaluating..." : "Submit to AI"}
@@ -430,7 +430,7 @@ function CodingRoomContent() {
 
 export default function CodingRoom() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0A0F1C] flex items-center justify-center text-white">Loading sandbox...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white">Loading sandbox...</div>}>
       <CodingRoomContent />
     </Suspense>
   );

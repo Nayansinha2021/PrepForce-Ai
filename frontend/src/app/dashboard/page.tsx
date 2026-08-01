@@ -214,7 +214,7 @@ export default function UserDashboard() {
           contact: "",
         },
         theme: {
-          color: "#2563eb" // Corporate Blue
+          color: "#000000"
         }
       };
 
@@ -254,9 +254,9 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0F1C] text-slate-100 selection:bg-blue-500/30 font-sans">
+    <div className="min-h-screen bg-black text-slate-100 selection:bg-white/20 font-sans">
       {/* Top Navigation */}
-      <nav className="border-b border-white/10 bg-[#0A0F1C]/80 backdrop-blur-xl sticky top-0 z-50">
+      <nav className="border-b border-white/10 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center group hover:opacity-80 transition-opacity">
             <PrepForceLogo className="w-[200px] h-[40px] mr-1" />
@@ -269,7 +269,7 @@ export default function UserDashboard() {
                 {userProfile?.role === 'admin' && (
                   <Link 
                     href="/admin" 
-                    className="text-xs px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full font-bold transition-all shadow-sm shadow-amber-500/5 mr-2 cursor-pointer"
+                    className="text-xs px-3.5 py-1.5 bg-white/5 hover:bg-white/10 text-white border border-white/20 rounded-full font-bold transition-all shadow-sm mr-2 cursor-pointer"
                   >
                     👑 Admin Console
                   </Link>
@@ -286,7 +286,7 @@ export default function UserDashboard() {
                 <span className="text-sm px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-slate-300 shadow-sm backdrop-blur-md">
                   Guest Mode
                 </span>
-                <Link href="/login" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                <Link href="/login" className="text-sm font-medium text-white hover:text-slate-300 transition-colors">
                   Sign In
                 </Link>
               </>
@@ -295,8 +295,8 @@ export default function UserDashboard() {
             <Link href="/" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer text-slate-400 hover:text-white shadow-sm" title="Go to Home">
               <Home className="w-4 h-4" />
             </Link>
-            <Link href="/settings" title="Account Settings" className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 flex items-center justify-center overflow-hidden hover:shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all cursor-pointer ml-2 shadow-[0_0_10px_rgba(37,99,235,0.3)]">
-              <span className="text-sm text-white font-bold">
+            <Link href="/settings" title="Account Settings" className="w-10 h-10 rounded-full bg-white border border-white/30 flex items-center justify-center overflow-hidden hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all cursor-pointer ml-2 shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+              <span className="text-sm text-black font-bold">
                 {session?.user?.user_metadata?.full_name ? session.user.user_metadata.full_name[0].toUpperCase() : (session?.user?.email ? session.user.email[0].toUpperCase() : "?")}
               </span>
             </Link>
@@ -305,14 +305,14 @@ export default function UserDashboard() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-6 pt-16 pb-24 relative">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
         <div className="grid md:grid-cols-3 gap-8 relative z-10">
           
           {/* Main Actions Column */}
           <div className="md:col-span-2 space-y-8">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-8 rounded-3xl bg-white/5 border border-white/10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[80px] pointer-events-none rounded-full" />
+               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[80px] pointer-events-none rounded-full" />
                <h2 className="text-2xl font-bold mb-2 text-white relative z-10">Ready for your mock interview?</h2>
                <p className="text-slate-400 mb-8 max-w-md relative z-10 font-light">Upload your resume and we will tailor the AI's questions to your specific experience and the role you are targeting.</p>
                
@@ -321,14 +321,14 @@ export default function UserDashboard() {
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
                   onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-all relative z-10 ${dragActive ? "border-blue-400 bg-blue-500/10" : "border-white/20 bg-[#0D1326]/50 hover:border-white/30"}`}
+                  className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-all relative z-10 ${dragActive ? "border-white bg-white/10" : "border-white/20 bg-neutral-950/50 hover:border-white/30"}`}
                >
-                 <Upload className={`w-10 h-10 mb-4 transition-colors ${dragActive ? "text-blue-400" : "text-slate-500"}`} />
+                 <Upload className={`w-10 h-10 mb-4 transition-colors ${dragActive ? "text-white" : "text-slate-500"}`} />
                  <h3 className="text-lg font-medium mb-1 text-white">
                    {file ? file.name : "Drag & drop your resume"}
                  </h3>
                  <p className="text-slate-400 text-sm mb-6 font-light">PDF or DOCX (Max 5MB)</p>
-                 <label className="cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:from-blue-500 hover:to-indigo-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+                 <label className="cursor-pointer bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-slate-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                    Browse Files
                    <input type="file" onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx" />
                  </label>
@@ -346,11 +346,11 @@ export default function UserDashboard() {
                              setJobDescription(t.description);
                            }
                          }}
-                         className="text-xs bg-[#0D1326] border border-white/10 rounded-lg px-3 py-1.5 outline-none text-slate-300"
+                         className="text-xs bg-neutral-950 border border-white/10 rounded-lg px-3 py-1.5 outline-none text-slate-300"
                        >
-                         <option value="" className="bg-[#0D1326] text-slate-200">Load Template...</option>
+                         <option value="" className="bg-neutral-950 text-slate-200">Load Template...</option>
                          {templates.map(t => (
-                           <option key={t.id} value={t.id} className="bg-[#0D1326] text-slate-200">{t.title}</option>
+                           <option key={t.id} value={t.id} className="bg-neutral-950 text-slate-200">{t.title}</option>
                          ))}
                        </select>
                      )}
@@ -361,7 +361,7 @@ export default function UserDashboard() {
                        value={jobTitle}
                        onChange={(e) => setJobTitle(e.target.value)}
                        placeholder="e.g. Senior Frontend Engineer" 
-                       className="w-full px-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner text-white placeholder:text-slate-500 outline-none font-light"
+                       className="w-full px-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner text-white placeholder:text-slate-500 outline-none font-light"
                      />
                    </div>
                    <div>
@@ -371,7 +371,7 @@ export default function UserDashboard() {
                        onChange={(e) => setJobDescription(e.target.value)}
                        placeholder="Paste the job description here to tailor the interview..." 
                        rows={3}
-                       className="w-full px-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner text-white placeholder:text-slate-500 resize-none outline-none font-light"
+                       className="w-full px-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner text-white placeholder:text-slate-500 resize-none outline-none font-light"
                      />
                    </div>
                    
@@ -381,7 +381,7 @@ export default function UserDashboard() {
                        id="saveTemplate" 
                        checked={saveTemplate}
                        onChange={(e) => setSaveTemplate(e.target.checked)}
-                       className="w-4 h-4 text-blue-500 bg-[#0D1326] border-white/20 rounded focus:ring-blue-500 focus:ring-offset-[#0A0F1C]"
+                       className="w-4 h-4 text-white bg-neutral-950 border-white/20 rounded focus:ring-white focus:ring-offset-black"
                      />
                      <label htmlFor="saveTemplate" className="text-sm text-slate-400 cursor-pointer select-none">
                        Save this role as a template for future interviews
@@ -390,11 +390,11 @@ export default function UserDashboard() {
                  </div>
 
                  <div className="mt-10 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-4 relative z-10">
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleStartInterview('standard')} disabled={uploading || !file} className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-full font-medium shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleStartInterview('standard')} disabled={uploading || !file} className="bg-white hover:bg-slate-200 text-black px-8 py-3 rounded-full font-medium shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <PlayCircle className="w-5 h-5" />
                     {uploading ? "Preparing AI..." : "Standard Interview"}
                   </motion.button>
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleStartInterview('coding')} className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-full font-medium shadow-[0_0_20px_rgba(79,70,229,0.4)] transition-all flex items-center justify-center gap-2">
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleStartInterview('coding')} className="bg-white/10 border border-white/20 hover:bg-white/20 text-white px-8 py-3 rounded-full font-medium transition-all flex items-center justify-center gap-2">
                     <FileText className="w-5 h-5" />
                     Coding Challenge
                   </motion.button>
@@ -407,7 +407,7 @@ export default function UserDashboard() {
                    onClick={() => setActiveTab('interviews')}
                    className={`pb-2 text-lg font-bold transition-all relative cursor-pointer ${
                      activeTab === 'interviews' 
-                       ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-500' 
+                       ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-white' 
                        : 'text-slate-400 hover:text-slate-200'
                    }`}
                  >
@@ -417,7 +417,7 @@ export default function UserDashboard() {
                    onClick={() => setActiveTab('coding')}
                    className={`pb-2 text-lg font-bold transition-all relative cursor-pointer ${
                      activeTab === 'coding' 
-                       ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-indigo-500' 
+                       ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-white' 
                        : 'text-slate-400 hover:text-slate-200'
                    }`}
                  >
@@ -442,14 +442,14 @@ export default function UserDashboard() {
                        </motion.div>
                      ) : (
                        interviews.map((interview) => (
-                         <div key={interview.id} className="p-6 rounded-3xl bg-white/5 border border-white/10 shadow-lg backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-blue-500/50 transition-colors">
+                         <div key={interview.id} className="p-6 rounded-3xl bg-white/5 border border-white/10 shadow-lg backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-white/30 transition-colors">
                            <div>
                              <h4 className="font-bold text-lg text-white">{interview.role || 'General Candidate'}</h4>
                              <p className="text-sm text-slate-400 flex items-center gap-2 mt-1">
                                {interview.status === 'completed' ? (
-                                 <span className="flex items-center gap-1 text-green-400"><CheckCircle2 className="w-3 h-3" /> Completed</span>
+                                 <span className="flex items-center gap-1 text-white"><CheckCircle2 className="w-3 h-3" /> Completed</span>
                                ) : (
-                                 <span className="flex items-center gap-1 text-blue-400"><PlayCircle className="w-3 h-3" /> In Progress</span>
+                                 <span className="flex items-center gap-1 text-slate-300"><PlayCircle className="w-3 h-3" /> In Progress</span>
                                )}
                                • {new Date(interview.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                              </p>
@@ -458,12 +458,12 @@ export default function UserDashboard() {
                              {interview.status === 'completed' && (
                                <div className="text-right mr-2">
                                  <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Score</div>
-                                 <div className="text-2xl font-bold text-blue-400">{interview.scorecard?.overallScore || '-'}/100</div>
+                                 <div className="text-2xl font-bold text-white">{interview.scorecard?.overallScore || '-'}/100</div>
                                </div>
                              )}
                              <Link 
                                href={interview.status === 'completed' ? `/report?sessionId=${interview.id}` : `/interview?sessionId=${interview.id}`} 
-                               className="p-3 rounded-xl bg-[#0D1326] border border-white/10 text-slate-300 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-all flex items-center gap-2 shadow-inner"
+                               className="p-3 rounded-xl bg-neutral-950 border border-white/10 text-slate-300 hover:text-white hover:bg-white hover:text-black hover:border-white transition-all flex items-center gap-2 shadow-inner"
                              >
                                {interview.status === 'completed' ? <FileText className="w-5 h-5" /> : <PlayCircle className="w-5 h-5" />}
                                <span className="text-sm font-medium hidden sm:block">
@@ -474,7 +474,7 @@ export default function UserDashboard() {
                                whileHover={{ scale: 1.1 }}
                                whileTap={{ scale: 0.9 }}
                                onClick={() => handleDeleteInterview(interview.id)}
-                               className="p-3 rounded-xl bg-[#0D1326] border border-white/10 text-slate-500 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all flex items-center justify-center shadow-inner cursor-pointer"
+                               className="p-3 rounded-xl bg-neutral-950 border border-white/10 text-slate-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center shadow-inner cursor-pointer"
                                title="Delete Interview"
                              >
                                <Trash2 className="w-5 h-5" />
@@ -503,11 +503,11 @@ export default function UserDashboard() {
                          </div>
                          <div className="p-4 bg-white/5 border border-white/5 rounded-2xl text-center space-y-1">
                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block">Solved Problems</span>
-                           <span className="text-2xl font-black text-indigo-400 font-mono block">{totalSolvedCount} <span className="text-xs text-slate-500 font-normal">/ {problems.length}</span></span>
+                           <span className="text-2xl font-black text-white font-mono block">{totalSolvedCount} <span className="text-xs text-slate-500 font-normal">/ {problems.length}</span></span>
                          </div>
                          <div className="p-4 bg-white/5 border border-white/5 rounded-2xl text-center space-y-1">
                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block">Run Pass Rate</span>
-                           <span className="text-2xl font-black text-green-400 font-mono block">{passRate}%</span>
+                           <span className="text-2xl font-black text-white font-mono block">{passRate}%</span>
                          </div>
                        </div>
                      );
@@ -516,7 +516,7 @@ export default function UserDashboard() {
                    {/* Problems checklist */}
                    <div className="space-y-4">
                      <h4 className="text-lg font-bold text-white flex items-center gap-2">
-                       <Trophy className="w-5 h-5 text-indigo-400" /> Challenge Directory
+                       <Trophy className="w-5 h-5 text-slate-400" /> Challenge Directory
                      </h4>
                      
                      <div className="space-y-3">
@@ -529,21 +529,21 @@ export default function UserDashboard() {
                          let statusColor = "bg-white/5 text-slate-400 border border-white/5";
                          if (isSolved) {
                            statusText = "Solved ✅";
-                           statusColor = "bg-green-500/10 text-green-400 border border-green-500/20";
+                           statusColor = "bg-white/10 text-white border border-white/20";
                          } else if (isAttempted) {
                            statusText = "Attempted ⚠️";
-                           statusColor = "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20";
+                           statusColor = "bg-white/5 text-slate-300 border border-white/10";
                          }
 
                          return (
-                           <div key={prob.id} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between gap-4 hover:border-indigo-500/20 transition-colors">
+                           <div key={prob.id} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between gap-4 hover:border-white/20 transition-colors">
                              <div className="space-y-1">
                                <div className="flex items-center gap-2">
                                  <span className="font-bold text-white text-base">{prob.title}</span>
                                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${
-                                   prob.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                                   prob.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                   'bg-red-500/20 text-red-400'
+                                   prob.difficulty === 'Easy' ? 'bg-white/10 text-white' :
+                                   prob.difficulty === 'Medium' ? 'bg-white/5 text-slate-300' :
+                                   'bg-white/[0.03] text-slate-400'
                                  }`}>
                                    {prob.difficulty}
                                  </span>
@@ -557,7 +557,7 @@ export default function UserDashboard() {
                                </span>
                                <button
                                  onClick={() => router.push(`/coding?sessionId=coding-${crypto.randomUUID()}`)}
-                                 className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors shadow-md shadow-indigo-600/10 cursor-pointer"
+                                 className="px-5 py-2 rounded-xl bg-white hover:bg-slate-200 text-black text-xs font-semibold transition-colors shadow-md shadow-white/5 cursor-pointer"
                                >
                                  {isSolved ? "Practice Again" : "Solve Challenge"}
                                </button>
@@ -585,7 +585,7 @@ export default function UserDashboard() {
                            const isExpanded = expandedAttemptId === attempt.id;
 
                            return (
-                             <div key={attempt.id} className="rounded-2xl bg-[#0D1326]/50 border border-white/5 overflow-hidden transition-all">
+                             <div key={attempt.id} className="rounded-2xl bg-neutral-950/50 border border-white/5 overflow-hidden transition-all">
                                <div className="p-4 flex items-center justify-between gap-4">
                                  <div className="space-y-1">
                                    <div className="font-bold text-white text-sm">{probTitle}</div>
@@ -598,7 +598,7 @@ export default function UserDashboard() {
                                  
                                  <div className="flex items-center gap-3">
                                    <span className={`px-2 py-0.5 text-xs font-bold rounded ${
-                                     attempt.passed ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                     attempt.passed ? 'bg-white/10 text-white border border-white/20' : 'bg-white/5 text-slate-500 border border-white/5'
                                    }`}>
                                      {attempt.passed ? 'Passed ✓' : 'Failed ✗'}
                                    </span>
@@ -636,7 +636,7 @@ export default function UserDashboard() {
           <div className="space-y-6 relative z-10 sticky top-24 h-fit">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-6 rounded-3xl bg-white/5 border border-white/10 shadow-2xl backdrop-blur-xl">
                <div className="flex items-start justify-between mb-4">
-                 <span className="bg-[#0D1326] text-xs px-3 py-1.5 rounded-full text-slate-300 font-medium border border-white/5 shadow-inner">
+                 <span className="bg-neutral-950 text-xs px-3 py-1.5 rounded-full text-slate-300 font-medium border border-white/5 shadow-inner">
                    {userProfile ? (userProfile.plan === 'free' ? 'Free' : 'Pro') : "..."}
                  </span>
                </div>
@@ -647,45 +647,45 @@ export default function UserDashboard() {
                      <span className="text-slate-400">Interviews Left</span>
                      <span className="font-medium text-white">{userProfile ? (userProfile.plan === 'free' ? getFreeInterviewsLeft() : userProfile.interviews_left) : "-"}</span>
                    </div>
-                   <div className="w-full h-2 bg-[#0D1326] rounded-full overflow-hidden shadow-inner">
+                   <div className="w-full h-2 bg-neutral-950 rounded-full overflow-hidden shadow-inner">
                      {(() => {
                        let max = 2;
                        let current = userProfile ? (userProfile.plan === 'free' ? getFreeInterviewsLeft() : userProfile.interviews_left) : 0;
                        if (userProfile?.plan === 'pro_monthly') max = 70;
                        if (userProfile?.plan === 'pro_yearly') max = 900;
                        const percent = userProfile ? Math.min(100, (current / max) * 100) : 0;
-                       return <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 w-full transition-all duration-500" style={{ width: `${percent}%` }} />;
+                       return <div className="h-full bg-white w-full transition-all duration-500" style={{ width: `${percent}%` }} />;
                      })()}
                    </div>
                  </div>
                </div>
 
                <div className="mt-8 pt-6 border-t border-white/10">
-                 <div className="flex items-start gap-3 text-blue-200 mb-6 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20">
-                   <AlertCircle className="w-5 h-5 shrink-0 text-blue-400" />
+                 <div className="flex items-start gap-3 text-slate-300 mb-6 bg-white/5 p-4 rounded-2xl border border-white/10">
+                   <AlertCircle className="w-5 h-5 shrink-0 text-white" />
                    <p className="text-xs font-light leading-relaxed">Upgrade to Pro to unlock more interviews, deep analytics, and premium reports.</p>
                  </div>
                  <div className="space-y-3">
                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                      onClick={() => setSelectedPlan("pro_plan_monthly")} 
-                     className={`w-full py-3 rounded-2xl font-medium transition-all shadow-sm border text-sm ${selectedPlan === "pro_plan_monthly" ? "bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(37,99,235,0.2)]" : "bg-[#0D1326] text-slate-400 hover:text-white hover:border-white/20 border-white/5"}`}
+                     className={`w-full py-3 rounded-2xl font-medium transition-all shadow-sm border text-sm ${selectedPlan === "pro_plan_monthly" ? "bg-white/10 text-white border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-neutral-950 text-slate-400 hover:text-white hover:border-white/20 border-white/5"}`}
                    >
                      Upgrade to Pro Monthly (₹150)
                    </motion.button>
                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                      onClick={() => setSelectedPlan("pro_plan_yearly")} 
-                     className={`w-full py-3 rounded-2xl font-medium transition-all shadow-sm border text-sm ${selectedPlan === "pro_plan_yearly" ? "bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(37,99,235,0.2)]" : "bg-[#0D1326] text-slate-400 hover:text-white hover:border-white/20 border-white/5"}`}
+                     className={`w-full py-3 rounded-2xl font-medium transition-all shadow-sm border text-sm ${selectedPlan === "pro_plan_yearly" ? "bg-white/10 text-white border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-neutral-950 text-slate-400 hover:text-white hover:border-white/20 border-white/5"}`}
                    >
                      Upgrade to Pro Yearly (₹999)
                    </motion.button>
                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                      onClick={() => setSelectedPlan("extra_interview_20")} 
-                     className={`w-full py-3 rounded-2xl font-medium transition-all shadow-sm border text-sm ${selectedPlan === "extra_interview_20" ? "bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(37,99,235,0.2)]" : "bg-[#0D1326] text-slate-400 hover:text-white hover:border-white/20 border-white/5"}`}
+                     className={`w-full py-3 rounded-2xl font-medium transition-all shadow-sm border text-sm ${selectedPlan === "extra_interview_20" ? "bg-white/10 text-white border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-neutral-950 text-slate-400 hover:text-white hover:border-white/20 border-white/5"}`}
                    >
                      Buy 1 Extra Interview (₹20)
                    </motion.button>
                  </div>
-                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleCheckout(selectedPlan)} className="w-full mt-6 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-slate-100 transition-colors shadow-lg">
+                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleCheckout(selectedPlan)} className="w-full mt-6 py-3.5 rounded-full bg-white text-black font-bold hover:bg-slate-200 transition-colors shadow-lg">
                    Proceed to Payment
                  </motion.button>
                </div>

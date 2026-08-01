@@ -60,8 +60,8 @@ export const structureResumeData = async (text: string) => {
     ${text}
   `;
 
-  const modelsToTry = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"];
-  let retries = 2;
+  const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
+  let retries = 1;
   while (retries >= 0) {
     for (const modelName of modelsToTry) {
       try {
@@ -79,7 +79,7 @@ export const structureResumeData = async (text: string) => {
     }
     retries--;
     if (retries >= 0) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 

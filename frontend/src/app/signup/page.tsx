@@ -180,10 +180,10 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0A0F1C] text-slate-100 p-4 relative overflow-hidden font-sans selection:bg-blue-500/30">
+    <div className="min-h-screen flex items-center justify-center bg-black text-slate-100 p-4 relative overflow-hidden font-sans selection:bg-white/20">
       {/* Background gradients */}
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -192,17 +192,17 @@ export default function SignupPage() {
         className="w-full max-w-md p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl relative z-10"
       >
         <div className="text-center mb-8">
-          <div className="mx-auto w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
-            <UserPlus className="w-6 h-6 text-white" />
+          <div className="mx-auto w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-white/10">
+            <UserPlus className="w-6 h-6 text-black" />
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-white">Create an Account</h2>
           <p className="text-slate-400 mt-2 text-sm font-light">Join PrepForce AI to crush your interviews</p>
         </div>
 
         {success ? (
-          <div className="text-center p-6 bg-green-500/10 rounded-xl border border-green-500/20">
-             <h3 className="text-green-400 font-bold mb-2">Account Created!</h3>
-             <p className="text-green-300/80 text-sm font-light">Redirecting you to the dashboard...</p>
+          <div className="text-center p-6 bg-white/5 rounded-xl border border-white/20">
+             <h3 className="text-white font-bold mb-2">Account Created!</h3>
+             <p className="text-slate-300 text-sm font-light">Redirecting you to the dashboard...</p>
           </div>
         ) : step === 'otp' ? (
           <motion.form
@@ -211,7 +211,7 @@ export default function SignupPage() {
             onSubmit={handleVerifyOtp}
             className="space-y-6"
           >
-            <div className="text-center p-4 bg-blue-500/5 rounded-2xl border border-blue-500/10 mb-4">
+            <div className="text-center p-4 bg-white/5 rounded-2xl border border-white/10 mb-4">
               <span className="text-xs text-slate-400 font-light">Verification code sent to:</span>
               <div className="font-bold text-white text-sm mt-1">{email}</div>
             </div>
@@ -219,25 +219,25 @@ export default function SignupPage() {
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2 text-center">Enter 6-Digit Code</label>
               <div className="relative group">
-                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-white transition-colors" />
                 <input
                   type="text"
                   required
                   maxLength={6}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  className="w-full pl-11 pr-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-white placeholder:text-slate-600 shadow-inner outline-none font-mono text-center text-2xl tracking-[0.4em] font-bold"
+                  className="w-full pl-11 pr-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all text-white placeholder:text-slate-600 shadow-inner outline-none font-mono text-center text-2xl tracking-[0.4em] font-bold"
                   placeholder="000000"
                 />
               </div>
               
               <div className="flex justify-between items-center text-[11px] text-slate-400 mt-3 px-1">
-                <span>Expires in: <span className="font-semibold text-blue-400 font-mono">{formatTime(timer)}</span></span>
+                <span>Expires in: <span className="font-semibold text-white font-mono">{formatTime(timer)}</span></span>
                 <button
                   type="button"
                   onClick={handleResendOtp}
                   disabled={resendCooldown > 0 || loading}
-                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors disabled:opacity-30 flex items-center gap-1 cursor-pointer"
+                  className="text-white hover:text-slate-300 font-medium transition-colors disabled:opacity-30 flex items-center gap-1 cursor-pointer"
                 >
                   <RefreshCw className="w-3 h-3" /> Resend Code {resendCooldown > 0 ? `(${resendCooldown}s)` : ""}
                 </button>
@@ -249,7 +249,7 @@ export default function SignupPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={verifying || otp.length !== 6}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-white hover:bg-slate-200 text-black font-medium py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <ShieldCheck className="w-4 h-4" />
               {verifying ? "Verifying..." : "Verify & Complete Signup"}
@@ -277,13 +277,13 @@ export default function SignupPage() {
             <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
               <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-white transition-colors" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
                   placeholder="you@example.com"
                 />
               </div>
@@ -292,13 +292,13 @@ export default function SignupPage() {
             <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-white transition-colors" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
                   placeholder="••••••••"
                 />
               </div>
@@ -307,13 +307,13 @@ export default function SignupPage() {
             <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Confirm Password</label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-white transition-colors" />
                 <input
                   type="password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
                   placeholder="••••••••"
                 />
               </div>
@@ -325,7 +325,7 @@ export default function SignupPage() {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] disabled:opacity-50"
+                className="w-full mt-2 bg-white hover:bg-slate-200 text-black font-medium py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] disabled:opacity-50"
               >
                 {loading ? "Sending Code..." : "Request Verification"}
               </motion.button>
@@ -356,7 +356,7 @@ export default function SignupPage() {
         </div>
 
         <p className="text-center text-sm text-slate-400 mt-8 font-light">
-          Already have an account? <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Sign in</Link>
+          Already have an account? <Link href="/login" className="text-white hover:text-slate-300 font-medium transition-colors">Sign in</Link>
         </p>
       </motion.div>
     </div>

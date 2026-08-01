@@ -63,10 +63,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0A0F1C] text-slate-100 p-4 relative overflow-hidden font-sans selection:bg-blue-500/30">
+    <div className="min-h-screen flex items-center justify-center bg-black text-slate-100 p-4 relative overflow-hidden font-sans selection:bg-white/20">
       {/* Background gradients */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -75,8 +75,8 @@ export default function LoginPage() {
         className="w-full max-w-md p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl relative z-10"
       >
         <div className="text-center mb-8">
-          <div className="mx-auto w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
-            <LogIn className="w-6 h-6 text-white" />
+          <div className="mx-auto w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-white/10">
+            <LogIn className="w-6 h-6 text-black" />
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-white">Welcome back</h2>
           <p className="text-slate-400 mt-2 text-sm font-light">Sign in to your AI Interview platform</p>
@@ -95,13 +95,13 @@ export default function LoginPage() {
           <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
             <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-white transition-colors" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
+                className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
                 placeholder="you@example.com"
               />
             </div>
@@ -114,7 +114,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
+              className="w-full px-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
               placeholder="••••••••"
             />
           </motion.div>
@@ -125,7 +125,7 @@ export default function LoginPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
-              className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] disabled:opacity-50"
+              className="w-full mt-2 bg-white hover:bg-slate-200 text-black font-medium py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] disabled:opacity-50"
             >
               {loading ? "Signing In..." : "Sign In"}
             </motion.button>
@@ -155,7 +155,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-sm text-slate-400 mt-8 font-light">
-          Don't have an account? <Link href="/signup" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Sign up</Link>
+          Don't have an account? <Link href="/signup" className="text-white hover:text-slate-300 font-medium transition-colors">Sign up</Link>
         </p>
       </motion.div>
     </div>

@@ -11,10 +11,10 @@ interface RadarChartProps {
 }
 
 export default function RadarChart({
-  technicalDepth = 85,
-  communication = 80,
-  confidence = 85,
-  overallScore = 83,
+  technicalDepth = 0,
+  communication = 0,
+  confidence = 0,
+  overallScore = 0,
 }: RadarChartProps) {
   const [activeHoverIdx, setActiveHoverIdx] = useState<number | null>(null);
 
@@ -95,7 +95,7 @@ export default function RadarChart({
 
   return (
     <div className="p-6 rounded-3xl bg-white/5 border border-white/10 shadow-2xl backdrop-blur-xl relative overflow-hidden flex flex-col h-full justify-between">
-      <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 blur-[80px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 blur-[80px] pointer-events-none rounded-full" />
       
       {/* Title block */}
       <div>
@@ -109,8 +109,8 @@ export default function RadarChart({
           <defs>
             {/* Pentagon Area Fill Gradient */}
             <linearGradient id="radar-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#4F46E5" stopOpacity="0.4" />
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#a0a0a0" stopOpacity="0.2" />
             </linearGradient>
             <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="4" result="blur" />
@@ -150,9 +150,9 @@ export default function RadarChart({
           <polygon
             points={candidatePolyString}
             fill="url(#radar-grad)"
-            stroke="#3B82F6"
+            stroke="#ffffff"
             strokeWidth="2"
-            style={{ filter: "drop-shadow(0 0 6px rgba(59, 130, 246, 0.5))" }}
+            style={{ filter: "drop-shadow(0 0 6px rgba(255, 255, 255, 0.3))" }}
           />
 
           {/* Outer anchor labels */}
@@ -172,7 +172,7 @@ export default function RadarChart({
                   onMouseEnter={() => setActiveHoverIdx(i)}
                   onMouseLeave={() => setActiveHoverIdx(null)}
                   className={`text-[11px] font-semibold tracking-wide transition-all cursor-pointer ${
-                    isHovered ? "fill-blue-400 font-bold" : "fill-slate-400"
+                    isHovered ? "fill-white font-bold" : "fill-slate-400"
                   }`}
                 >
                   {labels[i]}
@@ -191,7 +191,7 @@ export default function RadarChart({
                     cx={pt.x}
                     cy={pt.y}
                     r="8"
-                    className="fill-blue-500/30 stroke-none"
+                    className="fill-white/30 stroke-none"
                     style={{ filter: "url(#glow)" }}
                   />
                 )}
@@ -201,8 +201,8 @@ export default function RadarChart({
                   r={isHovered ? "6" : "4"}
                   onMouseEnter={() => setActiveHoverIdx(i)}
                   onMouseLeave={() => setActiveHoverIdx(null)}
-                  className={`cursor-pointer transition-all duration-200 stroke-[#0A0F1C] stroke-2 ${
-                    isHovered ? "fill-indigo-400 scale-125" : "fill-blue-400"
+                  className={`cursor-pointer transition-all duration-200 stroke-black stroke-2 ${
+                    isHovered ? "fill-white scale-125" : "fill-neutral-300"
                   }`}
                 />
               </g>
@@ -212,7 +212,7 @@ export default function RadarChart({
       </div>
 
       {/* Dynamic Glassmorphic Description Footer Tooltip */}
-      <div className="min-h-[76px] px-4 py-3 bg-[#0D1326]/60 border border-white/5 rounded-2xl flex flex-col justify-center backdrop-blur-md relative z-20">
+      <div className="min-h-[76px] px-4 py-3 bg-neutral-950/60 border border-white/5 rounded-2xl flex flex-col justify-center backdrop-blur-md relative z-20">
         <AnimatePresence mode="wait">
           {activeHoverIdx !== null ? (
             <motion.div
@@ -223,10 +223,10 @@ export default function RadarChart({
               transition={{ duration: 0.15 }}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-wider font-extrabold text-blue-400">
+                <span className="text-[10px] uppercase tracking-wider font-extrabold text-white">
                   {labels[activeHoverIdx]}
                 </span>
-                <span className="text-[11px] font-bold text-white px-2 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded-full">
+                <span className="text-[11px] font-bold text-white px-2 py-0.5 bg-white/10 border border-white/20 rounded-full">
                   {scores[activeHoverIdx]}/100
                 </span>
               </div>

@@ -50,7 +50,8 @@ function InterviewRoomContent() {
     let isMounted = true;
 
     const initTracking = async () => {
-      await loadFaceModels();
+      // Load face models in the background — don't block the interview UI
+      loadFaceModels().catch(err => console.warn("Face model load failed (non-blocking):", err));
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         
@@ -258,7 +259,7 @@ function InterviewRoomContent() {
     const greeting = "Hello! Welcome to PrepForce AI. I'll be conducting your technical interview today. To start off, please introduce yourself and tell me a bit about your background and technical experience.";
     const timer = setTimeout(() => {
       speakAiResponse(greeting);
-    }, 800);
+    }, 300);
     return () => clearTimeout(timer);
   }, []);
 
@@ -330,12 +331,12 @@ function InterviewRoomContent() {
   };
 
   return (
-    <div className="h-screen bg-[#0A0F1C] text-slate-100 flex flex-col selection:bg-blue-500/30 overflow-hidden font-sans">
+    <div className="h-screen bg-black text-slate-100 flex flex-col selection:bg-white/20 overflow-hidden font-sans">
       
       {showViolationWarning && (
-        <div className="fixed inset-0 z-50 bg-[#0A0F1C]/90 backdrop-blur-md flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
           <div className="bg-white/5 border border-white/10 p-8 rounded-3xl max-w-md w-full text-center shadow-2xl backdrop-blur-xl">
-            <div className="w-16 h-16 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-16 h-16 bg-white/10 text-white rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertTriangle className="w-8 h-8" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Tab Switch Detected</h2>
@@ -344,7 +345,7 @@ function InterviewRoomContent() {
             </p>
             <button
               onClick={() => setShowViolationWarning(false)}
-              className="bg-red-600/20 border border-red-500/50 hover:bg-red-600/40 text-red-400 px-8 py-3 rounded-full font-medium transition-colors w-full shadow-lg"
+              className="bg-white/10 border border-white/30 hover:bg-white/20 text-white px-8 py-3 rounded-full font-medium transition-colors w-full shadow-lg"
             >
               I Understand, Continue
             </button>
@@ -353,29 +354,29 @@ function InterviewRoomContent() {
       )}
 
       {/* PIP Video */}
-      <div className="fixed bottom-32 right-8 w-48 aspect-video bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50 z-50">
+      <div className="fixed bottom-32 right-8 w-48 aspect-video bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10 z-50">
         <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform scale-x-[-1]" />
         <div className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2 py-1 rounded text-[10px] font-medium text-white">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
           Face Tracking Active
         </div>
       </div>
 
       {/* Top Header */}
-      <header className="p-6 flex justify-between items-center z-10 bg-[#0A0F1C]/80 backdrop-blur-xl border-b border-white/10 shadow-sm">
+      <header className="p-6 flex justify-between items-center z-10 bg-black/80 backdrop-blur-xl border-b border-white/10 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+          <div className="w-3 h-3 rounded-full bg-white animate-pulse shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
           <span className="font-mono text-sm tracking-widest text-slate-400">RECORDING</span>
         </div>
         <div className="font-bold text-lg text-white">AI Mock Interview</div>
-        <div className={`text-sm font-medium px-4 py-1.5 rounded-full bg-white/5 border border-white/10 ${timeLeft < 60 ? 'text-red-400 animate-pulse' : 'text-slate-300'}`}>
+        <div className={`text-sm font-medium px-4 py-1.5 rounded-full bg-white/5 border border-white/10 ${timeLeft < 60 ? 'text-white animate-pulse' : 'text-slate-300'}`}>
           {formatTime(timeLeft)}
         </div>
       </header>
 
       {/* Main Interactive Stage */}
       <main className="flex-grow flex flex-col items-center justify-center p-4 relative min-h-0 overflow-y-auto overflow-x-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-white/5 rounded-full blur-[100px] pointer-events-none" />
         
         {/* Core AI Orb */}
         <AIOrb state={orbState} externalAmplitude={isListening ? 1 + userAmplitude * 0.5 : undefined} className="mb-12 relative z-10" />
@@ -383,7 +384,7 @@ function InterviewRoomContent() {
         {/* Captions / Transcript Area */}
         <div className="w-full max-w-2xl text-center space-y-8 relative z-10">
            <div className={`transition-opacity duration-300 ${isAiSpeaking ? 'opacity-100' : 'opacity-40'}`}>
-              <h2 className="text-sm font-semibold tracking-wider text-blue-400 mb-2 uppercase">PrepForce AI</h2>
+              <h2 className="text-sm font-semibold tracking-wider text-white mb-2 uppercase">PrepForce AI</h2>
               <p className="text-lg md:text-xl font-medium leading-relaxed text-white max-h-40 overflow-y-auto px-4">{aiResponse}</p>
            </div>
            
@@ -395,16 +396,16 @@ function InterviewRoomContent() {
       </main>
 
       {/* Bottom Controls */}
-      <footer className="shrink-0 p-6 flex justify-center gap-6 z-10 bg-[#0A0F1C]/80 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+      <footer className="shrink-0 p-6 flex justify-center gap-6 z-10 bg-black/80 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
         <button 
            onClick={toggleMic}
-           className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${isListening ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]' : 'bg-white/10 border border-white/20 text-slate-300 hover:bg-white/20'}`}
+           className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${isListening ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-white/10 border border-white/20 text-slate-300 hover:bg-white/20'}`}
         >
           {isListening ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
         </button>
         <button 
            onClick={endInterviewAndReport}
-           className="w-16 h-16 rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 flex items-center justify-center transition-all shadow-lg"
+           className="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all shadow-lg"
         >
           <PhoneOff className="w-6 h-6" />
         </button>
@@ -416,7 +417,7 @@ function InterviewRoomContent() {
 
 export default function InterviewRoom() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0A0F1C] text-white flex items-center justify-center">Loading session...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading session...</div>}>
       <InterviewRoomContent />
     </Suspense>
   );

@@ -11,7 +11,26 @@ const getGenAI = () => {
   return apiKey ? new GoogleGenAI({ apiKey }) : null;
 };
 
-const buildResumePromptAndGreeting = (interview: any) => {
+const getDifficultyLevel = (questionCount: number): { level: string; description: string } => {
+  if (questionCount <= 2) {
+    return {
+      level: "EASY",
+      description: "Ask simple, foundational questions — basic definitions, straightforward concepts, or 'what is' questions about the candidate's listed skills. Example: 'Can you explain what React's virtual DOM is?' or 'What is the difference between SQL and NoSQL databases?'"
+    };
+  } else if (questionCount <= 5) {
+    return {
+      level: "MEDIUM",
+      description: "Ask intermediate-level questions — implementation trade-offs, debugging scenarios, architecture decisions, and 'how would you' questions about their projects. Example: 'In your project, how did you handle state management across components?' or 'What trade-offs did you consider when choosing this database?'"
+    };
+  } else {
+    return {
+      level: "HARD",
+      description: "Ask advanced questions — system design, optimization under constraints, complex edge cases, scalability challenges, and deep technical reasoning tied to their experience. Example: 'How would you redesign your project to handle 10x the traffic?' or 'Walk me through how you would debug a memory leak in your Node.js service.'"
+    };
+  }
+};
+
+const buildResumePromptAndGreeting = (interview: any, questionCount: number = 0) => {
   const resumeCtx = interview?.parsed_resume_context || {};
   const role = interview?.role || resumeCtx.role || "Software Developer";
 
@@ -22,6 +41,8 @@ const buildResumePromptAndGreeting = (interview: any) => {
   const projectsList = Array.isArray(rawProjects) ? rawProjects.join(", ") : (typeof rawProjects === 'string' ? rawProjects : "Technical Projects");
 
   const expSummary = typeof resumeCtx.experience === 'string' ? resumeCtx.experience : (Array.isArray(resumeCtx.experience) ? resumeCtx.experience.join(", ") : "professional software development experience");
+
+  const difficulty = getDifficultyLevel(questionCount);
 
   let sysPrompt = `You are PrepForce AI, a Senior Technical Interviewer conducting a real technical interview for the position of "${role}".
 
@@ -38,11 +59,15 @@ CANDIDATE RESUME SUMMARY:
   sysPrompt += `\n\nCRITICAL INTERVIEWER DIRECTIVES:
 1. GREET CANDIDATE BY NAME: If the candidate introduces themselves or mentions their name (e.g. "My name is Naya", "I am Naya"), ALWAYS greet them warmly by their name first (e.g. "Nice to meet you, Naya!").
 2. ANSWER EVALUATION & ERROR DETECTION (CRITICAL):
-   - IF THE CANDIDATE'S ANSWER CONTAINS A TECHNICAL MISTAKE OR MISCONCEPTION: Politely point out the specific error or correct concept in 1 friendly line (e.g. "Actually, React uses Virtual DOM rather than Shadow DOM..." or "That's not quite accurate regarding HTTP GET requests..."), then ask a follow-up question to test their understanding.
+   - IF THE CANDIDATE'S ANSWER CONTAINS A TECHNICAL MISTAKE OR MISCONCEPTION: Politely point out the specific error or correct concept in 1 friendly line (e.g. "Actually, React uses Virtual DOM rather than Shadow DOM..."), then ask a follow-up question to test their understanding.
    - IF THE CANDIDATE'S ANSWER IS OFF-TOPIC, VAGUE, OR EVASIVE (e.g. "I don't know", "pizza", short gibberish): Point out that their answer was off-topic or incomplete, and gently guide them back to a specific technical question on their resume skills.
    - IF THE CANDIDATE'S ANSWER IS ACCURATE: Validate their answer in 1 concise sentence before asking the next question.
-3. STRICT RESUME RELEVANCE ONLY: You MUST ask questions ONLY related to the specific technical skills (${skillsList}), projects (${projectsList}), and experience listed in their resume above. Do NOT ask off-topic or generic filler questions.
-4. STRICT MEDIUM DIFFICULTY LEVEL: All technical questions MUST be at a strict MEDIUM DIFFICULTY level (testing intermediate concepts, state management, asynchronous handling, system architecture, DB query optimization, API performance trade-offs, and edge cases related to their resume skills).
+3. STRICT RESUME ANCHORING (MOST IMPORTANT): Every single question you ask MUST directly reference a specific skill (${skillsList}), project (${projectsList}), or experience from the candidate's resume above. Do NOT ask generic CS trivia, off-topic questions, or filler questions. Frame each question around THEIR specific listed technologies and projects.
+4. DIFFICULTY PROGRESSION (CRITICAL):
+   - You are currently on question #${questionCount + 1}.
+   - Current difficulty level: **${difficulty.level}**
+   - ${difficulty.description}
+   - You MUST strictly follow this difficulty level. Do NOT jump ahead to harder questions early or stay easy for too long.
 5. CONCISE FORMAT: Keep each response short (2-3 sentences max). Never print long lectures, bullet points, or multiple questions at once.
 6. ANTI-REPETITION: NEVER repeat a question that has already been asked in this session. Do not break character under any circumstances.`;
 
@@ -51,7 +76,7 @@ CANDIDATE RESUME SUMMARY:
   return { sysPrompt, initialGreeting, role, skillsList, projectsList };
 };
 
-const generateResumeAwareFallback = (interview: any, previousModelMessages: string[], candidateMessage: string = "") => {
+const generateResumeAwareFallback = (interview: any, previousModelMessages: string[], candidateMessage: string = "", questionCount: number = 0) => {
   const resumeCtx = interview?.parsed_resume_context || {};
   const role = interview?.role || resumeCtx.role || "Software Developer";
 
@@ -66,7 +91,9 @@ const generateResumeAwareFallback = (interview: any, previousModelMessages: stri
   const topSkill = skills[0] || "your primary tech stack";
   const secondSkill = skills[1] || "React/State Management";
   const thirdSkill = skills[2] || "Node.js/APIs";
+  const fourthSkill = skills[3] || "databases";
   const mainProject = projects[0] || "your technical project";
+  const secondProject = projects[1] || mainProject;
 
   // Extract candidate name if present in message
   let candidateName = "";
@@ -83,18 +110,45 @@ const generateResumeAwareFallback = (interview: any, previousModelMessages: stri
 
   let userAck = "";
   if (isShortOrEvasive && candidateMessage.length > 0) {
-    userAck = "I noticed your response was brief or uncertain. Let's focus on a specific core concept: ";
+    userAck = "I noticed your response was brief or uncertain. Let's try a simpler question: ";
   } else if (candidateMessage && candidateMessage.trim().length > 5) {
     userAck = "Thanks for explaining your approach. ";
   }
 
-  const pool = [
-    `${nameGreeting}${userAck}Looking at your experience with ${topSkill} in ${mainProject}, how do you handle state synchronization, async error handling, and performance bottlenecks under load?`,
-    `${nameGreeting}${userAck}Building on your background with ${secondSkill}, what intermediate architectural pattern (e.g., custom hooks, caching, or middleware) did you implement to optimize application responsiveness?`,
-    `${nameGreeting}${userAck}Considering your experience designing backend API endpoints using ${thirdSkill || topSkill}, how do you structure database queries, transaction rollbacks, and rate-limiting to prevent race conditions?`,
-    `${nameGreeting}${userAck}Walk me through a medium-complexity technical decision you made while building ${mainProject}. What were the key trade-offs between memory overhead and execution speed?`,
-    `${nameGreeting}${userAck}With your background in ${skills.slice(0, 3).join(", ")}, how do you approach integration testing and handling edge cases for asynchronous data pipelines?`
+  // Tiered fallback question pools based on difficulty progression
+  const easyPool = [
+    `${nameGreeting}${userAck}Since you've listed ${topSkill} on your resume, can you explain in simple terms what ${topSkill} is and why you chose to use it in your projects?`,
+    `${nameGreeting}${userAck}I see you have experience with ${secondSkill}. Can you tell me what ${secondSkill} is primarily used for and how you got started with it?`,
+    `${nameGreeting}${userAck}Looking at your project ${mainProject}, can you give me a brief overview of what it does and what technologies you used to build it?`,
+    `${nameGreeting}${userAck}You've mentioned ${thirdSkill} in your skills. Can you explain the basic difference between ${thirdSkill} and an alternative technology you considered?`,
+    `${nameGreeting}${userAck}I noticed ${fourthSkill} in your skill set. Can you describe a simple use case where you applied ${fourthSkill} in your work?`
   ];
+
+  const mediumPool = [
+    `${nameGreeting}${userAck}In your project ${mainProject}, how did you handle error handling and edge cases when working with ${topSkill}?`,
+    `${nameGreeting}${userAck}When building with ${secondSkill}, what architectural pattern or design decision did you make to keep the codebase maintainable?`,
+    `${nameGreeting}${userAck}Can you walk me through how you would debug a performance issue in ${secondProject} related to ${thirdSkill}?`,
+    `${nameGreeting}${userAck}In your experience with ${topSkill}, how do you manage asynchronous operations and prevent common pitfalls like race conditions?`,
+    `${nameGreeting}${userAck}Tell me about a technical challenge you faced while building ${mainProject}. What was the problem, and how did you solve it?`
+  ];
+
+  const hardPool = [
+    `${nameGreeting}${userAck}If ${mainProject} suddenly needed to handle 100x more users, how would you redesign the ${topSkill} layer to scale horizontally?`,
+    `${nameGreeting}${userAck}Considering your experience with ${secondSkill} and ${thirdSkill}, how would you design a fault-tolerant system that gracefully degrades under partial failures?`,
+    `${nameGreeting}${userAck}Walk me through how you would architect a real-time feature for ${secondProject} from scratch, considering latency, consistency, and data integrity trade-offs.`,
+    `${nameGreeting}${userAck}In a production scenario for ${mainProject}, how would you identify and resolve a memory leak in the ${topSkill} layer without downtime?`,
+    `${nameGreeting}${userAck}If you were to rebuild ${mainProject} today with everything you've learned, what fundamental architectural decision would you change and why?`
+  ];
+
+  // Select pool based on question count (same thresholds as getDifficultyLevel)
+  let pool: string[];
+  if (questionCount <= 2) {
+    pool = easyPool;
+  } else if (questionCount <= 5) {
+    pool = mediumPool;
+  } else {
+    pool = hardPool;
+  }
 
   const available = pool.filter(q => !previousModelMessages.some(prev => prev.includes(q.trim()) || q.trim().includes(prev)));
   if (available.length > 0) {
@@ -190,6 +244,10 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
 
     let history: any[] = [];
     const isCodingSession = typeof sessionId === 'string' && sessionId.startsWith("coding-");
+
+    // Count how many questions have been asked so far (model messages minus greeting)
+    const modelMessages = existingMessages ? existingMessages.filter(m => m.role === 'model') : [];
+    const questionCount = Math.max(0, modelMessages.length); // each model message after greeting is roughly one question
     
     if (!existingMessages || existingMessages.length === 0) {
       let sysPrompt = "";
@@ -198,7 +256,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
       if (isCodingSession) {
         sysPrompt = `You are PrepForce AI, an expert Senior Staff Software Engineer and coding reviewer. Evaluate the candidate's code submission for technical correctness, time & space complexity (Big-O notation), edge cases, and optimization suggestions. Be structured, concise, and direct.`;
       } else {
-        const built = buildResumePromptAndGreeting(interview);
+        const built = buildResumePromptAndGreeting(interview, questionCount);
         sysPrompt = built.sysPrompt;
         initialGreeting = built.initialGreeting;
       }
@@ -222,10 +280,22 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
         history.push({ role: "model", parts: [{ text: initialGreeting }] });
       }
     } else {
-      history = existingMessages.map(m => ({
-        role: m.role,
-        parts: [{ text: m.content }]
-      }));
+      // Rebuild the system prompt with updated difficulty level for the current question count
+      if (!isCodingSession) {
+        const updatedBuild = buildResumePromptAndGreeting(interview, questionCount);
+        // Replace the original system prompt with the updated one
+        history = existingMessages.map(m => {
+          if (m.role === 'system') {
+            return { role: 'system', parts: [{ text: updatedBuild.sysPrompt }] };
+          }
+          return { role: m.role, parts: [{ text: m.content }] };
+        });
+      } else {
+        history = existingMessages.map(m => ({
+          role: m.role,
+          parts: [{ text: m.content }]
+        }));
+      }
     }
 
     // 3. Save user answer (optionally with code context)
@@ -292,7 +362,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
          requestConfig.systemInstruction = systemInstruction;
        }
 
-       const modelsToTry = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"];
+       const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
        for (const modelName of modelsToTry) {
          try {
            const response = await genai.models.generateContent({
@@ -316,7 +386,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
 
     if (!aiResponseText || isRepeated) {
        console.warn("AI response was empty or duplicate of previous message. Selecting dynamic resume-aware non-repeating fallback.");
-       aiResponseText = generateResumeAwareFallback(interview, previousModelMessages, finalUserMessage);
+       aiResponseText = generateResumeAwareFallback(interview, previousModelMessages, finalUserMessage, questionCount);
     }
 
     // 5. Save AI response

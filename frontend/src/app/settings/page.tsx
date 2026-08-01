@@ -68,9 +68,9 @@ export default function SettingsPage() {
   if (!session) return null; // loading state
 
   return (
-    <div className="min-h-screen bg-[#0A0F1C] text-slate-100 selection:bg-blue-500/30 font-sans">
+    <div className="min-h-screen bg-black text-slate-100 selection:bg-white/20 font-sans">
       {/* Top Navigation */}
-      <nav className="border-b border-white/10 bg-[#0A0F1C]/80 backdrop-blur-xl sticky top-0 z-50">
+      <nav className="border-b border-white/10 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center group hover:opacity-80 transition-opacity">
             <PrepForceLogo className="w-[140px] h-[28px] mr-1" />
@@ -89,10 +89,10 @@ export default function SettingsPage() {
       </nav>
 
       <main className="max-w-3xl mx-auto px-6 py-12 relative">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-8 rounded-3xl bg-white/5 border border-white/10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
           <div className="flex items-center gap-4 mb-8 pb-6 border-b border-white/10">
-            <div className="w-16 h-16 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl font-bold shadow-inner border border-blue-500/20">
+            <div className="w-16 h-16 rounded-full bg-white/10 text-white flex items-center justify-center text-2xl font-bold shadow-inner border border-white/10">
               {fullName ? fullName[0].toUpperCase() : session.user.email?.[0].toUpperCase()}
             </div>
             <div>
@@ -110,7 +110,7 @@ export default function SettingsPage() {
                   type="email"
                   disabled
                   value={session.user.email || ""}
-                  className="w-full pl-10 pr-4 py-3 bg-[#0A0F1C]/50 border border-white/5 rounded-xl text-slate-500 cursor-not-allowed shadow-inner font-light"
+                  className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/5 rounded-xl text-slate-500 cursor-not-allowed shadow-inner font-light"
                 />
               </div>
               <p className="text-xs text-slate-500 mt-2 font-light">Email changes require security verification and cannot be changed here.</p>
@@ -125,7 +125,7 @@ export default function SettingsPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Jane Doe"
-                  className="w-full pl-10 pr-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all text-white placeholder:text-slate-500 shadow-inner outline-none font-light"
                 />
               </div>
             </div>
@@ -135,12 +135,12 @@ export default function SettingsPage() {
               <select
                 value={defaultLanguage}
                 onChange={(e) => setDefaultLanguage(e.target.value)}
-                className="w-full px-4 py-3 bg-[#0D1326] border border-white/10 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-white shadow-inner outline-none font-light appearance-none cursor-pointer"
+                className="w-full px-4 py-3 bg-neutral-950 border border-white/10 rounded-xl focus:border-white focus:ring-1 focus:ring-white transition-all text-white shadow-inner outline-none font-light appearance-none cursor-pointer"
               >
-                <option value="javascript" className="bg-[#0D1326] text-slate-200">JavaScript</option>
-                <option value="python" className="bg-[#0D1326] text-slate-200">Python</option>
-                <option value="cpp" className="bg-[#0D1326] text-slate-200">C++</option>
-                <option value="java" className="bg-[#0D1326] text-slate-200">Java</option>
+                <option value="javascript" className="bg-neutral-950 text-slate-200">JavaScript</option>
+                <option value="python" className="bg-neutral-950 text-slate-200">Python</option>
+                <option value="cpp" className="bg-neutral-950 text-slate-200">C++</option>
+                <option value="java" className="bg-neutral-950 text-slate-200">Java</option>
               </select>
             </div>
 
@@ -148,7 +148,7 @@ export default function SettingsPage() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-full font-medium shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center gap-2 disabled:opacity-50"
+                className="bg-white hover:bg-slate-200 text-black px-8 py-3 rounded-full font-medium shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 {loading ? "Saving..." : "Save Changes"}
