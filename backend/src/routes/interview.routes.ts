@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import multer from "multer";
-import { parseResumeToText, structureResumeData } from "../services/resumeParser";
+import { parseResumeToText, structureResumeData, extractTechStack } from "../services/resumeParser";
 import { supabase } from "../config/supabase";
 import { uploadToS3 } from "../services/s3Service";
 import fs from "fs";
@@ -47,6 +47,29 @@ router.post("/behavior", requireAuth, validateBehavior, async (req, res) => {
   } catch (error: any) {
     console.error("Behavior save error:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Protected route to detect tech stack from resume
+router.post("/detect-tech-stack", requireAuth, uploadResumeLimiter, upload.single("resume"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No resume file provided" });
+    }
+
+    const text = await parseResumeToText(req.file.path, req.file.originalname);
+    const techStack = await extractTechStack(text);
+
+    return res.json({ success: true, techStack });
+  } catch (error: any) {
+    console.error("Detect tech stack error:", error);
+    return res.status(500).json({ error: error.message || "Failed to detect tech stack" });
+  } finally {
+    try {
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (e) {}
   }
 });
 

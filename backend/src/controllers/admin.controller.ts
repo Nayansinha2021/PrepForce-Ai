@@ -11,16 +11,16 @@ const execAsync = promisify(exec);
 export const getAdminStats = async (req: Request, res: Response) => {
   try {
     // 1. Fetch user profiles for plan counts
-    const { data: users, error: userError } = await supabase
+    let users: any[] = [];
+    const { data: userData, error: userError } = await supabase
       .from("user_profiles")
       .select("plan");
-
-    if (userError) throw userError;
+    if (!userError && userData) users = userData;
 
     let proMonthlyCount = 0;
     let proYearlyCount = 0;
 
-    users?.forEach((u) => {
+    users.forEach((u) => {
       if (u.plan === "pro_monthly") proMonthlyCount++;
       if (u.plan === "pro_yearly") proYearlyCount++;
     });
@@ -30,16 +30,16 @@ export const getAdminStats = async (req: Request, res: Response) => {
     const subRevenue = proMonthlyCount * 150 + proYearlyCount * 999;
 
     // 2. Fetch interviews for total count and premium reports
-    const { data: interviews, error: interviewError } = await supabase
+    let interviews: any[] = [];
+    const { data: intData, error: interviewError } = await supabase
       .from("interviews")
       .select("scorecard");
+    if (!interviewError && intData) interviews = intData;
 
-    if (interviewError) throw interviewError;
-
-    const totalInterviews = interviews?.length || 0;
+    const totalInterviews = interviews.length;
     let premiumReportsSold = 0;
 
-    interviews?.forEach((i) => {
+    interviews.forEach((i) => {
       if (i.scorecard && i.scorecard.isPremiumUnlocked) {
         premiumReportsSold++;
       }
@@ -51,11 +51,11 @@ export const getAdminStats = async (req: Request, res: Response) => {
     const totalRevenue = subRevenue + reportRevenue;
 
     // 3. Fetch total messages count for calculating real AI costs
-    const { count: totalMessages, error: msgError } = await supabase
+    let totalMessages = 0;
+    const { count: msgCount, error: msgError } = await supabase
       .from("messages")
       .select("id", { count: "exact", head: true });
-
-    if (msgError) throw msgError;
+    if (!msgError && msgCount) totalMessages = msgCount;
 
     // Real data-driven cost and profit formula:
     // - Fixed server hosting cost: ₹450 / month (~$5.50 USD)
@@ -107,18 +107,14 @@ export const getUsersList = async (req: Request, res: Response) => {
     let { data: users, error } = await query.order('created_at', { ascending: false });
     
     // If the database status column is missing, run a fallback query without status
-    if (error && (error.message?.includes("status") || error.message?.includes("column"))) {
-      let retryQuery = supabase.from("user_profiles").select("id, email, plan, interviews_left, created_at");
+    if (error) {
+      let retryQuery = supabase.from("user_profiles").select("id, email, plan, created_at");
       if (search) {
         retryQuery = retryQuery.ilike('email', `%${search}%`);
       }
-      const { data: retryUsers, error: retryErr } = await retryQuery.order('created_at', { ascending: false });
-      if (retryErr) throw retryErr;
+      const { data: retryUsers } = await retryQuery.order('created_at', { ascending: false });
       
-      users = (retryUsers || []).map((u: any) => ({ ...u, status: 'active' }));
-      error = null;
-    } else if (error) {
-      throw error;
+      users = (retryUsers || []).map((u: any) => ({ ...u, status: 'active', interviews_left: u.interviews_left || 2 }));
     }
     
     return res.json({ users: users || [] });

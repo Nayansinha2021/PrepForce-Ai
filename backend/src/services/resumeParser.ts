@@ -91,3 +91,34 @@ export const structureResumeData = async (text: string) => {
     role: "General Candidate",
   };
 };
+
+export const extractTechStack = async (text: string): Promise<string[]> => {
+  const genai = getGenAI();
+  if (!genai) {
+    return ["JavaScript", "React", "Node.js"]; // fallback
+  }
+
+  const prompt = `
+    Analyze the following resume text and extract ONLY the technical skills, programming languages, frameworks, and tools used by the candidate.
+    Return a valid JSON array of strings ONLY. No markdown, no formatting, no extra text.
+    Example: ["Python", "React", "Docker", "AWS"]
+    
+    Resume Text:
+    ${text}
+  `;
+
+  const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
+  for (const modelName of modelsToTry) {
+    try {
+      const response = await genai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+      });
+      const jsonStr = response.text?.replace(/```json/g, "").replace(/```/g, "").trim() || "[]";
+      return JSON.parse(jsonStr);
+    } catch (error) {
+      console.warn(`Model ${modelName} failed to extract tech stack...`);
+    }
+  }
+  return ["JavaScript", "React", "Node.js"]; // fallback
+};

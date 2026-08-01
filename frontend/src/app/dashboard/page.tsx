@@ -18,6 +18,8 @@ export default function UserDashboard() {
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [detectedStack, setDetectedStack] = useState<string[] | null>(null);
+  const [isDetectingStack, setIsDetectingStack] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("pro_plan_yearly");
   const [userProfile, setUserProfile] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
@@ -89,18 +91,51 @@ export default function UserDashboard() {
     }
   };
 
+  const detectTechStack = async (selectedFile: File) => {
+    setIsDetectingStack(true);
+    setDetectedStack(null);
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const formData = new FormData();
+      formData.append("resume", selectedFile);
+
+      const res = await fetch(`${API_BASE}/api/interview/detect-tech-stack`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token || ""}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.techStack) {
+        setDetectedStack(data.techStack);
+      }
+    } catch (err) {
+      console.error("Failed to detect tech stack", err);
+    } finally {
+      setIsDetectingStack(false);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
+      const selectedFile = e.dataTransfer.files[0];
+      setFile(selectedFile);
+      detectTechStack(selectedFile);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      detectTechStack(selectedFile);
     }
   };
 
@@ -333,6 +368,30 @@ export default function UserDashboard() {
                    <input type="file" onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx" />
                  </label>
                  </form>
+
+                 {/* Tech Stack Display */}
+                 {(isDetectingStack || detectedStack) && (
+                   <div className="mt-6 p-4 rounded-xl border border-white/10 bg-white/[0.02] relative z-10 transition-all">
+                     <h4 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
+                       <Code2 className="w-4 h-4 text-slate-400" />
+                       Detected Tech Stack
+                     </h4>
+                     {isDetectingStack ? (
+                       <div className="flex items-center gap-3">
+                         <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                         <span className="text-sm text-slate-400 animate-pulse">Extracting skills from resume...</span>
+                       </div>
+                     ) : (
+                       <div className="flex flex-wrap gap-2">
+                         {detectedStack?.map((tech, i) => (
+                           <span key={i} className="px-3 py-1 text-xs font-medium bg-white/5 border border-white/10 text-slate-300 rounded-full">
+                             {tech}
+                           </span>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                 )}
 
                  <div className="mt-6 space-y-4 text-left relative z-10">
                    <div className="flex items-center justify-between">
