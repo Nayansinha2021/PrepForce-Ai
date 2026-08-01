@@ -70,7 +70,7 @@ export default function Home() {
       <main className="relative pt-32 pb-16 md:pt-48 md:pb-32 px-6 md:px-12 max-w-7xl mx-auto z-10">
         {/* Background Image for Hero Section */}
         <div className="absolute top-0 left-0 w-full h-full sm:h-[800px] -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute inset-0 bg-black/35 z-10"></div>
+          <div className="absolute inset-0 bg-black/20 z-10"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10"></div>
           <img 
             src="/hero-bg.png" 
