@@ -73,7 +73,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/60 z-10"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10"></div>
           <img 
-            src="/hero-bg.jpg" 
+            src="/hero-bg.png" 
             alt="Hero Background" 
             className="w-full h-full object-cover opacity-40 grayscale" 
           />
