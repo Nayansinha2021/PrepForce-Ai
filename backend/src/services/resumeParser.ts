@@ -1,11 +1,12 @@
 import fs from "fs";
 import path from "path";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 const pdf = require("pdf-parse");
 const mammoth = require("mammoth");
-const getGenAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  return apiKey ? new GoogleGenAI({ apiKey }) : null;
+
+const getGrokAI = () => {
+  const apiKey = process.env.XAI_API_KEY;
+  return apiKey ? new OpenAI({ apiKey, baseURL: "https://api.x.ai/v1" }) : null;
 };
 
 export const parseResumeToText = async (filePath: string, originalName?: string): Promise<string> => {
@@ -40,97 +41,67 @@ export const parseResumeToText = async (filePath: string, originalName?: string)
   }
 };
 
-export const structureResumeData = async (text: string) => {
-  const genai = getGenAI();
-  if (!genai) {
-    console.warn("GEMINI_API_KEY not set. Returning standard structured data.");
-    return {
-      skills: ["Software Engineering", "Full-Stack Development", "Problem Solving"],
-      experience: "Software engineering experience based on uploaded resume.",
-      projects: ["Full-Stack Application Project"],
-      role: "Software Developer",
-    };
-  }
+const TECH_CATALOG = [
+  "JavaScript", "TypeScript", "React", "Node.js", "Python", "Java", "C++", "C#", "Go", "Ruby", "PHP", 
+  "Swift", "Kotlin", "HTML", "CSS", "SQL", "NoSQL", "MongoDB", "PostgreSQL", "MySQL", "Redis", 
+  "Docker", "Kubernetes", "AWS", "Azure", "GCP", "GraphQL", "REST API", "Express", "Django", "Flask",
+  "Spring Boot", ".NET", "Vue.js", "Angular", "Next.js", "Tailwind CSS", "Git", "Linux", "Machine Learning"
+];
 
-  const prompt = `
-    Analyze the following resume text and extract the candidate's core skills, experience overview, key projects, and their inferred target job title.
-    Return ONLY a valid JSON object with the keys "skills" (array of strings), "experience" (string summary), "projects" (array of strings), and "role" (string). Do NOT wrap it in markdown. Do NOT add any extra text.
-    
-    Resume Text:
-    ${text}
-  `;
+const ROLE_CATALOG = [
+  "Software Engineer", "Frontend Developer", "Backend Developer", "Full Stack Developer",
+  "Data Scientist", "DevOps Engineer", "Mobile Developer", "UI/UX Designer", "Product Manager",
+  "Systems Administrator", "Cloud Architect", "Machine Learning Engineer", "Web Developer"
+];
 
-  const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
-  let retries = 1;
-  while (retries >= 0) {
-    for (const modelName of modelsToTry) {
-      try {
-        const response = await genai.models.generateContent({
-          model: modelName,
-          contents: prompt,
-        });
-        
-        // Attempt to parse JSON response
-        const jsonStr = response.text?.replace(/```json/g, "").replace(/```/g, "").trim() || "{}";
-        return JSON.parse(jsonStr);
-      } catch (error: any) {
-        console.warn(`Model ${modelName} in resumeParser failed (${error.status || error.message})...`);
-      }
-    }
-    retries--;
-    if (retries >= 0) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+const fallbackRuleBasedParsing = (text: string) => {
+  const normalizedText = text.toLowerCase();
+  
+  // Extract Skills
+  const extractedSkills = TECH_CATALOG.filter(skill => {
+    const regex = new RegExp(`\\b${skill.toLowerCase().replace('+', '\\+')}\\b`, 'i');
+    return regex.test(normalizedText);
+  });
+  
+  // Extract Role
+  let inferredRole = "Software Developer";
+  for (const role of ROLE_CATALOG) {
+    if (normalizedText.includes(role.toLowerCase())) {
+      inferredRole = role;
+      break;
     }
   }
 
-  console.warn("Gemini AI is unavailable after model retries. Falling back to default structured data.");
+  // Basic Section Boundary Splitting for Experience & Projects
+  let experienceSummary = "Candidate has relevant experience in the tech industry.";
+  let extractedProjects = ["Technical Project Experience"];
+
+  const expMatch = text.match(/(?:EXPERIENCE|WORK HISTORY|EMPLOYMENT)[\s\S]*?(?:EDUCATION|PROJECTS|SKILLS|$)/i);
+  if (expMatch && expMatch[0].length > 50) {
+    experienceSummary = expMatch[0].substring(0, 200).replace(/\n/g, " ").trim() + "...";
+  }
+
+  const projMatch = text.match(/(?:PROJECTS)[\s\S]*?(?:EDUCATION|EXPERIENCE|SKILLS|$)/i);
+  if (projMatch && projMatch[0].length > 50) {
+    // Extract a few lines that might be project titles
+    const lines = projMatch[0].split('\n').filter(l => l.trim().length > 5 && l.trim().length < 60);
+    if (lines.length > 1) {
+      extractedProjects = lines.slice(1, 4).map(l => l.replace(/[^a-zA-Z0-9 ]/g, "").trim());
+    }
+  }
+
   return {
-    skills: ["Software Engineering", "Problem Solving", "Communication"],
-    experience: "Candidate has relevant experience based on the uploaded resume.",
-    projects: ["Various professional projects"],
-    role: "General Candidate",
+    skills: extractedSkills.length > 0 ? extractedSkills.slice(0, 8) : ["Software Engineering", "Problem Solving"],
+    experience: experienceSummary,
+    projects: extractedProjects,
+    role: inferredRole,
   };
 };
 
+export const structureResumeData = async (text: string) => {
+  return fallbackRuleBasedParsing(text);
+};
+
 export const extractTechStack = async (text: string): Promise<string[]> => {
-  const genai = getGenAI();
-  if (!genai) {
-    return ["JavaScript", "React", "Node.js"]; // fallback
-  }
-
-  const prompt = `
-    Analyze the following resume text and extract ONLY the technical skills, programming languages, frameworks, and tools used by the candidate.
-    Return a valid JSON array of strings ONLY. No markdown, no formatting, no extra text.
-    Example: ["Python", "React", "Docker", "AWS"]
-    
-    Resume Text:
-    ${text}
-  `;
-
-  const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
-  for (const modelName of modelsToTry) {
-    try {
-      const response = await genai.models.generateContent({
-        model: modelName,
-        contents: prompt,
-      });
-      
-      let responseText = response.text || "[]";
-      // Try to extract just the array block in case Gemini wrapped it in markdown or conversation
-      const arrayMatch = responseText.match(/\[[\s\S]*\]/);
-      if (arrayMatch) {
-        responseText = arrayMatch[0];
-      } else {
-        responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
-      }
-      
-      const parsed = JSON.parse(responseText);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    } catch (error: any) {
-      console.warn(`Model ${modelName} failed to extract tech stack:`, error.message);
-    }
-  }
-  return ["JavaScript", "React", "Node.js"]; // fallback
+  return fallbackRuleBasedParsing(text).skills;
 };

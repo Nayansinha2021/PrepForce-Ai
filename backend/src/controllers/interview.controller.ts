@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 import { supabase } from "../config/supabase";
 
-const getGenAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  return apiKey ? new GoogleGenAI({ apiKey }) : null;
+const getGrokAI = () => {
+  const apiKey = process.env.XAI_API_KEY;
+  return apiKey ? new OpenAI({ apiKey, baseURL: "https://api.x.ai/v1" }) : null;
 };
 
 const getDifficultyLevel = (questionCount: number): { level: string; description: string } => {
@@ -265,19 +265,19 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
         const cached = mockSessionCache.get(sessionId)!;
         cached.messages.push({ role: 'system', content: sysPrompt });
         if (initialGreeting) {
-          cached.messages.push({ role: 'model', content: initialGreeting });
+          cached.messages.push({ role: 'assistant', content: initialGreeting });
         }
       } else {
         const toInsert: any[] = [{ interview_id: sessionId, role: 'system', content: sysPrompt }];
         if (initialGreeting) {
-          toInsert.push({ interview_id: sessionId, role: 'model', content: initialGreeting });
+          toInsert.push({ interview_id: sessionId, role: 'assistant', content: initialGreeting });
         }
         await supabase.from('messages').insert(toInsert);
       }
       
-      history.push({ role: "system", parts: [{ text: sysPrompt }] });
+      history.push({ role: "system", content: sysPrompt });
       if (initialGreeting) {
-        history.push({ role: "model", parts: [{ text: initialGreeting }] });
+        history.push({ role: "assistant", content: initialGreeting });
       }
     } else {
       // Rebuild the system prompt with updated difficulty level for the current question count
@@ -286,14 +286,14 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
         // Replace the original system prompt with the updated one
         history = existingMessages.map(m => {
           if (m.role === 'system') {
-            return { role: 'system', parts: [{ text: updatedBuild.sysPrompt }] };
+            return { role: 'system', content: updatedBuild.sysPrompt };
           }
-          return { role: m.role, parts: [{ text: m.content }] };
+          return { role: m.role === 'model' ? 'assistant' : m.role, content: m.content };
         });
       } else {
         history = existingMessages.map(m => ({
-          role: m.role,
-          parts: [{ text: m.content }]
+          role: m.role === 'model' ? 'assistant' : m.role,
+          content: m.content
         }));
       }
     }
@@ -312,7 +312,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
         { interview_id: sessionId, role: 'user', content: finalUserMessage }
       ]);
     }
-    history.push({ role: "user", parts: [{ text: finalUserMessage }] });
+    history.push({ role: "user", content: finalUserMessage });
 
     let aiResponseText = "";
 
@@ -340,42 +340,25 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     }
 
     // 4. Generate AI Response
-    const genai = getGenAI();
-    if (!aiResponseText && genai) {
+    const openai = getGrokAI();
+    if (!aiResponseText && openai) {
        let chatHistory = isCodingSession 
-         ? [{ role: 'user', parts: [{ text: finalUserMessage }] }]
-         : history.filter(m => m.role !== 'system');
+         ? [{ role: 'user', content: finalUserMessage }]
+         : history;
          
-       const systemMessages = history.filter(m => m.role === 'system');
-       const systemInstruction = systemMessages.map(m => m.parts[0].text).join("\n");
-
-       // Gemini API requires the first message in history to be from the 'user'
-       if (!isCodingSession && chatHistory.length > 0 && chatHistory[0].role === 'model') {
-         chatHistory = [
-           { role: 'user', parts: [{ text: "Hello, I am ready for the interview." }] },
-           ...chatHistory
-         ];
-       }
-
-       const requestConfig: any = {};
-       if (systemInstruction) {
-         requestConfig.systemInstruction = systemInstruction;
-       }
-
-       const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
+       const modelsToTry = ["grok-2-latest", "grok-beta"];
        for (const modelName of modelsToTry) {
          try {
-           const response = await genai.models.generateContent({
+           const response = await openai.chat.completions.create({
              model: modelName,
-             contents: chatHistory as any,
-             config: requestConfig
+             messages: chatHistory as any
            });
-           if (response && response.text && response.text.trim()) {
-             aiResponseText = response.text.trim();
+           if (response && response.choices && response.choices[0]?.message?.content?.trim()) {
+             aiResponseText = response.choices[0].message.content.trim();
              break;
            }
          } catch (e: any) {
-           console.warn(`Gemini model ${modelName} call failed (${e.status || e.message}). Trying fallback model...`);
+           console.warn(`Grok model ${modelName} call failed (${e.status || e.message}). Trying fallback model...`);
          }
        }
     }
@@ -410,10 +393,10 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("AI Chat Error:", error);
     if (error.status === 429 || error.message?.includes('exceeded')) {
-      return res.status(429).json({ error: "Gemini API Rate Limit Exceeded. Please wait a minute." });
+      return res.status(429).json({ error: "Grok API Rate Limit Exceeded. Please wait a minute." });
     }
     if (error.status === 503 || error.message?.includes('demand')) {
-      return res.status(503).json({ error: "Gemini AI is currently experiencing high demand. Please try again in a few moments." });
+      return res.status(503).json({ error: "Grok AI is currently experiencing high demand. Please try again in a few moments." });
     }
     return res.status(500).json({ error: error.message || "Interviewer AI encountered an error" });
   }

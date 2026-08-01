@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import { supabase } from "../config/supabase";
 import { sendInterviewReportEmail } from "../services/emailService";
 import { mockSessionCache } from "./interview.controller";
 
-const genai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
+const openai = process.env.XAI_API_KEY ? new OpenAI({ apiKey: process.env.XAI_API_KEY, baseURL: "https://api.x.ai/v1" }) : null;
 export const generateFeedbackReport = async (req: Request, res: Response) => {
   try {
     const rawSessionId = req.params.sessionId;
@@ -126,7 +126,7 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
       ? `\n\nBEHAVIORAL DATA LOGGED DURING INTERVIEW:\n${JSON.stringify(interviewData.behavioral_data, null, 2)}\nUse this to generate a specific "behavioralAnalysis" section focusing on non-verbal communication, eye contact (distractions), and expression (smiles/neutral/nervousness).`
       : "";
 
-    if (!genai) {
+    if (!openai) {
       // No API key — calculate scores from available signals
       let calcTech: number, calcComm: number, calcConf: number;
       
@@ -214,26 +214,29 @@ Return ONLY a valid JSON object (no markdown wrapping) with these exact keys:
 "behavioralAnalysis": "string"
     `;
 
-    const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
-    let response: any = null;
+    const modelsToTry = ["grok-2-latest", "grok-beta"];
+    let responseText: string | null = null;
     for (const modelName of modelsToTry) {
       try {
-        response = await genai.models.generateContent({
+        const response = await openai.chat.completions.create({
            model: modelName,
-           contents: prompt + behavioralContext + " \n\n" + mockTranscript,
+           messages: [{ role: "user", content: prompt + behavioralContext + " \n\n" + mockTranscript }],
         });
-        if (response && response.text) break;
+        if (response && response.choices && response.choices[0]?.message?.content) {
+          responseText = response.choices[0].message.content;
+          break;
+        }
       } catch (e: any) {
         console.warn(`Model ${modelName} in report generator failed (${e.status || e.message}). Trying fallback model...`);
       }
     }
 
-    if (!response || !response.text) {
-      console.warn("Gemini AI report generation unavailable after model fallbacks. Falling back to default report.");
-      response = { text: '```json\n{"overallScore": 80, "technicalDepth": 80, "communication": 80, "confidence": 80, "strengths": ["Completed the interview session"], "improvements": ["Provide more detailed architectural examples in responses"], "behavioralAnalysis": "Demonstrated active focus and clear communication during the session."}\n```' };
+    if (!responseText) {
+      console.warn("Grok AI report generation unavailable after model fallbacks. Falling back to default report.");
+      responseText = '```json\n{"overallScore": 80, "technicalDepth": 80, "communication": 80, "confidence": 80, "strengths": ["Completed the interview session"], "improvements": ["Provide more detailed architectural examples in responses"], "behavioralAnalysis": "Demonstrated active focus and clear communication during the session."}\n```';
     }
     
-    let text = response?.text;
+    let text = responseText;
     text = text || "{}";
     const match = text.match(/\{[\s\S]*\}/);
     const jsonStr = match ? match[0] : "{}";
@@ -294,10 +297,10 @@ Return ONLY a valid JSON object (no markdown wrapping) with these exact keys:
   } catch (error: any) {
     console.error("Failed to generate report:", error);
     if (error.status === 429 || error.message?.includes('exceeded')) {
-      return res.status(429).json({ error: "Gemini API Rate Limit Exceeded. Please try again later." });
+      return res.status(429).json({ error: "Grok API Rate Limit Exceeded. Please try again later." });
     }
     if (error.status === 503 || error.message?.includes('demand')) {
-      return res.status(503).json({ error: "Gemini AI is currently experiencing high demand. Please try again later." });
+      return res.status(503).json({ error: "Grok AI is currently experiencing high demand. Please try again later." });
     }
     return res.status(500).json({ error: error.message || "Failed to generate report" });
   }

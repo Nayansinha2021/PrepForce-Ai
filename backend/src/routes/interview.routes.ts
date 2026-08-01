@@ -84,11 +84,13 @@ router.post("/upload-resume", requireAuth, uploadResumeLimiter, upload.single("r
     const text = await parseResumeToText(req.file.path, req.file.originalname);
 
     // 2. Upload to S3 and structure resume via AI in parallel (they are independent)
-    const [s3Url, structuredData] = await Promise.all([
+    const [s3Url, structuredDataRaw] = await Promise.all([
       uploadToS3(req.file.path, req.file.originalname),
       structureResumeData(text),
     ]);
     
+    const structuredData: any = structuredDataRaw;
+
     // 4. Save S3 public URL inside the structured resume context JSONB column
     structuredData.resumeUrl = s3Url;
 
