@@ -68,6 +68,17 @@ export default function Home() {
       </nav>
 
       <main className="relative pt-32 pb-16 md:pt-48 md:pb-32 px-6 md:px-12 max-w-7xl mx-auto z-10">
+        {/* Background Image for Hero Section */}
+        <div className="absolute top-0 left-0 w-full h-full sm:h-[800px] -z-10 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-black/60 z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10"></div>
+          <img 
+            src="/hero-bg.jpg" 
+            alt="Hero Background" 
+            className="w-full h-full object-cover opacity-40 grayscale" 
+          />
+        </div>
+
         {/* Hero Section */}
         <div className="flex flex-col items-center text-center">
           <motion.div
@@ -113,21 +124,6 @@ export default function Home() {
             </Link>
           </motion.div>
         </div>
-
-        {/* Hero Image Mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-20 w-full max-w-5xl mx-auto rounded-xl md:rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_60px_rgba(255,255,255,0.05)] relative bg-white/5 backdrop-blur-sm p-2 md:p-4"
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10 pointer-events-none" />
-          <img 
-            src="/hero-mockup.png" 
-            alt="PrepForce AI Platform" 
-            className="w-full h-auto object-cover rounded-lg md:rounded-2xl relative z-0 border border-white/5"
-          />
-        </motion.div>
 
         {/* Feature Cards Showcase */}
         <motion.div
