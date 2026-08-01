@@ -114,12 +114,27 @@ export default function Home() {
           </motion.div>
         </div>
 
+        {/* Hero Image Mockup */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="mt-20 w-full max-w-5xl mx-auto rounded-xl md:rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_60px_rgba(255,255,255,0.05)] relative bg-white/5 backdrop-blur-sm p-2 md:p-4"
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10 pointer-events-none" />
+          <img 
+            src="/hero-mockup.png" 
+            alt="PrepForce AI Platform" 
+            className="w-full h-auto object-cover rounded-lg md:rounded-2xl relative z-0 border border-white/5"
+          />
+        </motion.div>
+
         {/* Feature Cards Showcase */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.4 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
           className="mt-32 grid md:grid-cols-3 gap-6 relative"
         >
           <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 group hover:border-white/30 hover:bg-white/10 transition-all relative overflow-hidden">
