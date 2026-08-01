@@ -227,6 +227,11 @@ function ReportRoomContent() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
         
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors relative z-10 mb-6 bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:bg-white/10 w-fit cursor-pointer">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+
         {/* Header Record */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
           <div>

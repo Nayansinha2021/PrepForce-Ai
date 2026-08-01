@@ -171,7 +171,7 @@ function InterviewRoomContent() {
       console.error("Failed to save behavioral data", e);
     }
 
-    router.push(`/report?sessionId=${sessionId}`);
+    router.replace(`/report?sessionId=${sessionId}`);
   }, [sessionId, router]);
 
   useEffect(() => {
