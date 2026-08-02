@@ -205,7 +205,7 @@ function ReportRoomContent() {
     <div className="min-h-screen bg-black text-slate-100 selection:bg-white/20 font-sans relative">
       {/* Background Image for Report */}
       <div className="fixed top-16 inset-x-0 bottom-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-black/40 z-10"></div>
+        <div className="absolute inset-0 bg-black/50 z-10"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10"></div>
         <img 
           src="/dashboard.png" 
