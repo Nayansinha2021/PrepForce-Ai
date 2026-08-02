@@ -31,9 +31,11 @@ function ReportRoomContent() {
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         
-        const res = await fetch(`${API_BASE}/api/report/${sessionId}`, {
+        const res = await fetch(`${API_BASE}/api/report/${sessionId}?t=${Date.now()}`, {
           headers: {
             Authorization: `Bearer ${session?.access_token || ""}`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
           }
         });
         
@@ -238,9 +240,9 @@ function ReportRoomContent() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
         
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors relative z-10 mb-6 bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:bg-white/10 w-fit cursor-pointer">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors relative z-10 mb-6 bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:bg-white/10 w-fit cursor-pointer">
           <ArrowLeft className="w-4 h-4" />
-          Back to Home
+          Back to Dashboard
         </Link>
 
         {/* Header Record */}
