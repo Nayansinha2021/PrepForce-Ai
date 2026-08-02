@@ -654,7 +654,7 @@ export default function UserDashboard() {
                            const isExpanded = expandedAttemptId === attempt.id;
 
                            return (
-                             <div key={attempt.id} className="rounded-2xl bg-neutral-950/50 border border-white/5 overflow-hidden transition-all">
+                             <div key={attempt.id} className="rounded-3xl bg-white/5 border border-white/10 shadow-lg backdrop-blur-md overflow-hidden transition-all">
                                <div className="p-4 flex items-center justify-between gap-4">
                                  <div className="space-y-1">
                                    <div className="font-bold text-white text-sm">{probTitle}</div>
