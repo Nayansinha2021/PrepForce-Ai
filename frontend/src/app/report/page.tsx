@@ -200,7 +200,18 @@ function ReportRoomContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-slate-100 selection:bg-white/20 font-sans">
+    <div className="min-h-screen bg-black text-slate-100 selection:bg-white/20 font-sans relative">
+      {/* Background Image for Report */}
+      <div className="fixed top-16 inset-x-0 bottom-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-black/40 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10"></div>
+        <img 
+          src="/dashboard.png" 
+          alt="Report Background" 
+          className="w-full h-full object-cover opacity-60 grayscale"
+          style={{ objectPosition: 'center calc(45% - 190px)' }}
+        />
+      </div>
       {/* Top Navigation */}
       <nav className="border-b border-white/10 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">

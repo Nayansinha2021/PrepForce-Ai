@@ -289,7 +289,17 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-slate-100 selection:bg-white/20 font-sans">
+    <div className="min-h-screen bg-black text-slate-100 selection:bg-white/20 font-sans relative">
+      {/* Background Image for Dashboard */}
+      <div className="fixed top-16 inset-x-0 bottom-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-black/40 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10"></div>
+        <img 
+          src="/dashboard.png" 
+          alt="Dashboard Background" 
+          className="w-full h-full object-cover object-top opacity-60 grayscale" 
+        />
+      </div>
       {/* Top Navigation */}
       <nav className="border-b border-white/10 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -339,7 +349,7 @@ export default function UserDashboard() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 pt-16 pb-24 relative">
+      <main className="max-w-7xl mx-auto px-6 pt-16 pb-24 relative z-10">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/[0.03] rounded-full blur-[120px] pointer-events-none" />
         <div className="grid md:grid-cols-3 gap-8 relative z-10">

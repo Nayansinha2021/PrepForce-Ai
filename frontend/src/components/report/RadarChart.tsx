@@ -202,7 +202,7 @@ export default function RadarChart({
                   onMouseEnter={() => setActiveHoverIdx(i)}
                   onMouseLeave={() => setActiveHoverIdx(null)}
                   className={`cursor-pointer transition-all duration-200 stroke-black stroke-2 ${
-                    isHovered ? "fill-white scale-125" : "fill-neutral-300"
+                    isHovered ? "fill-white" : "fill-neutral-300"
                   }`}
                 />
               </g>

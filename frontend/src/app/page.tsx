@@ -131,6 +131,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.5 }}
+          id="features"
           className="mt-32 grid md:grid-cols-3 gap-6 relative"
         >
           <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 group hover:border-white/30 hover:bg-white/10 transition-all relative overflow-hidden">
