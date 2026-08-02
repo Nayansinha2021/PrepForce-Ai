@@ -50,6 +50,11 @@ export const generateFeedbackReport = async (req: Request, res: Response) => {
         .eq('id', sessionId)
         .maybeSingle();
 
+      if (interviewError) {
+        console.error("Database connection error fetching interview:", interviewError);
+        return res.status(500).json({ error: "Failed to fetch interview from database. Check backend environment variables." });
+      }
+
       if (!dbInterview) {
         if (!mockSessionCache.has(sessionId)) {
           mockSessionCache.set(sessionId, {
