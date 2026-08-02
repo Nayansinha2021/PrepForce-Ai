@@ -605,7 +605,7 @@ export default function UserDashboard() {
                          }
 
                          return (
-                           <div key={prob.id} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between gap-4 hover:border-white/20 transition-colors">
+                           <div key={prob.id} className="p-6 rounded-3xl bg-white/5 border border-white/10 shadow-lg backdrop-blur-md flex items-center justify-between gap-4 hover:border-white/30 transition-colors">
                              <div className="space-y-1">
                                <div className="flex items-center gap-2">
                                  <span className="font-bold text-white text-base">{prob.title}</span>
