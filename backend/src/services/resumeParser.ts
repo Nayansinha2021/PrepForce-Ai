@@ -4,9 +4,9 @@ import OpenAI from "openai";
 const pdf = require("pdf-parse");
 const mammoth = require("mammoth");
 
-const getGrokAI = () => {
-  const apiKey = process.env.XAI_API_KEY;
-  return apiKey ? new OpenAI({ apiKey, baseURL: "https://api.x.ai/v1" }) : null;
+const getAIClient = () => {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  return apiKey ? new OpenAI({ apiKey, baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/" }) : null;
 };
 
 export const parseResumeToText = async (filePath: string, originalName?: string): Promise<string> => {

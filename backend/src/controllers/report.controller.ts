@@ -4,7 +4,7 @@ import { supabase } from "../config/supabase";
 import { sendInterviewReportEmail } from "../services/emailService";
 import { mockSessionCache } from "./interview.controller";
 
-const openai = process.env.XAI_API_KEY ? new OpenAI({ apiKey: process.env.XAI_API_KEY, baseURL: "https://api.x.ai/v1" }) : null;
+const openai = process.env.GOOGLE_API_KEY ? new OpenAI({ apiKey: process.env.GOOGLE_API_KEY, baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/" }) : null;
 export const generateFeedbackReport = async (req: Request, res: Response) => {
   try {
     const rawSessionId = req.params.sessionId;
@@ -219,7 +219,7 @@ Return ONLY a valid JSON object (no markdown wrapping) with these exact keys:
 "behavioralAnalysis": "string"
     `;
 
-    const modelsToTry = ["grok-2-latest", "grok-beta"];
+    const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
     let responseText: string | null = null;
     for (const modelName of modelsToTry) {
       try {
@@ -237,7 +237,7 @@ Return ONLY a valid JSON object (no markdown wrapping) with these exact keys:
     }
 
     if (!responseText) {
-      console.warn("Grok AI report generation unavailable after model fallbacks. Falling back to default report.");
+      console.warn("Gemini AI report generation unavailable after model fallbacks. Falling back to default report.");
       responseText = '```json\n{"overallScore": 80, "technicalDepth": 80, "communication": 80, "confidence": 80, "strengths": ["Completed the interview session"], "improvements": ["Provide more detailed architectural examples in responses"], "behavioralAnalysis": "Demonstrated active focus and clear communication during the session."}\n```';
     }
     
@@ -302,10 +302,10 @@ Return ONLY a valid JSON object (no markdown wrapping) with these exact keys:
   } catch (error: any) {
     console.error("Failed to generate report:", error);
     if (error.status === 429 || error.message?.includes('exceeded')) {
-      return res.status(429).json({ error: "Grok API Rate Limit Exceeded. Please try again later." });
+      return res.status(429).json({ error: "Gemini API Rate Limit Exceeded. Please try again later." });
     }
     if (error.status === 503 || error.message?.includes('demand')) {
-      return res.status(503).json({ error: "Grok AI is currently experiencing high demand. Please try again later." });
+      return res.status(503).json({ error: "Gemini AI is currently experiencing high demand. Please try again later." });
     }
     return res.status(500).json({ error: error.message || "Failed to generate report" });
   }

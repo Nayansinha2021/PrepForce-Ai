@@ -6,9 +6,9 @@ dotenv.config();
 
 import { supabase } from "../config/supabase";
 
-const getGrokAI = () => {
-  const apiKey = process.env.XAI_API_KEY;
-  return apiKey ? new OpenAI({ apiKey, baseURL: "https://api.x.ai/v1" }) : null;
+const getAIClient = () => {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  return apiKey ? new OpenAI({ apiKey, baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/" }) : null;
 };
 
 const getDifficultyLevel = (questionCount: number): { level: string; description: string } => {
@@ -340,13 +340,13 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
     }
 
     // 4. Generate AI Response
-    const openai = getGrokAI();
+    const openai = getAIClient();
     if (!aiResponseText && openai) {
        let chatHistory = isCodingSession 
          ? [{ role: 'user', content: finalUserMessage }]
          : history;
          
-       const modelsToTry = ["grok-2-latest", "grok-beta"];
+       const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash"];
        for (const modelName of modelsToTry) {
          try {
            const response = await openai.chat.completions.create({
@@ -358,7 +358,7 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
              break;
            }
          } catch (e: any) {
-           console.warn(`Grok model ${modelName} call failed (${e.status || e.message}). Trying fallback model...`);
+           console.warn(`Gemini model ${modelName} call failed (${e.status || e.message}). Trying fallback model...`);
          }
        }
     }
@@ -393,10 +393,10 @@ export const handleAiInterviewChat = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("AI Chat Error:", error);
     if (error.status === 429 || error.message?.includes('exceeded')) {
-      return res.status(429).json({ error: "Grok API Rate Limit Exceeded. Please wait a minute." });
+      return res.status(429).json({ error: "Gemini API Rate Limit Exceeded. Please wait a minute." });
     }
     if (error.status === 503 || error.message?.includes('demand')) {
-      return res.status(503).json({ error: "Grok AI is currently experiencing high demand. Please try again in a few moments." });
+      return res.status(503).json({ error: "Gemini AI is currently experiencing high demand. Please try again in a few moments." });
     }
     return res.status(500).json({ error: error.message || "Interviewer AI encountered an error" });
   }
